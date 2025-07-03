@@ -1,0 +1,55 @@
+import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import type { Opportunity } from '@/lib/data';
+import { ArrowRight, Calendar, Euro, MapPin } from 'lucide-react';
+
+type OpportunityCardProps = {
+  opportunity: Opportunity;
+};
+
+export function OpportunityCard({ opportunity }: OpportunityCardProps) {
+  const statusVariant = {
+    Open: 'default',
+    Closed: 'destructive',
+    Upcoming: 'secondary',
+  }[opportunity.status] as 'default' | 'destructive' | 'secondary';
+
+  return (
+    <Link href={`/opportunities/${opportunity.id}`} className="block">
+      <Card className="transition-all hover:shadow-md hover:border-primary/50">
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <CardTitle className="font-headline text-lg">{opportunity.title}</CardTitle>
+            <Badge variant={statusVariant} className="whitespace-nowrap">{opportunity.status}</Badge>
+          </div>
+          <CardDescription className="flex items-center gap-2 pt-2">
+            <MapPin className="h-4 w-4" />
+            <span>{opportunity.country}</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <Euro className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-muted-foreground">Amount</p>
+              <p className="font-medium">{opportunity.fundingAmount}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-muted-foreground">Deadline</p>
+              <p className="font-medium">{opportunity.deadline}</p>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="text-sm text-primary">
+          <div className="flex items-center gap-1 font-semibold">
+              View Details <ArrowRight className="h-4 w-4" />
+          </div>
+        </CardFooter>
+      </Card>
+    </Link>
+  );
+}
