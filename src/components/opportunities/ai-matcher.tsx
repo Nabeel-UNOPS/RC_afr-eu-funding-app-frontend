@@ -5,32 +5,15 @@ import { Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { opportunityMatching, OpportunityMatchingOutput } from '@/ai/flows/opportunity-matching';
+import type { OpportunityMatchingOutput } from '@/ai/flows/opportunity-matching';
 import type { Opportunity } from '@/lib/data';
-import { userProfile } from '@/lib/data';
 import { Skeleton } from '../ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { getAiRecommendation } from '@/app/actions';
 
 type AiMatcherProps = {
   opportunity: Opportunity;
 };
-
-// Server action to be called from the client component
-async function getAiRecommendation(opportunity: Opportunity): Promise<OpportunityMatchingOutput | { error: string }> {
-  "use server";
-  try {
-    const result = await opportunityMatching({
-      userProfile: JSON.stringify(userProfile),
-      searchHistory: "humanitarian, West Africa, peacebuilding, NDICI",
-      newOpportunityDetails: `${opportunity.title}: ${opportunity.summary}`,
-    });
-    return result;
-  } catch (error) {
-    console.error("AI Matching Error:", error);
-    return { error: "Failed to get AI recommendation." };
-  }
-}
-
 
 export function AiMatcher({ opportunity }: AiMatcherProps) {
   const [loading, setLoading] = useState(false);
