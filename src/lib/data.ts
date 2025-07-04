@@ -143,7 +143,7 @@ export const supportContent = {
   faq: [
     {
       question: 'How is the data in the app updated?',
-      answer: 'Currently, data is updated manually by our admin team based on information from EU portals. We are exploring automated data feeds for the future.',
+      answer: 'The app is connected to live data feeds from various EU funding portals, ensuring that you have the most up-to-date information on opportunities.',
     },
     {
       question: 'Who should I contact before submitting a proposal for a HIP?',

@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { OpportunityCard } from '@/components/dashboard/opportunity-card';
-import { opportunities, userProfile } from '@/lib/data';
+import { userProfile } from '@/lib/data';
+import { getOpportunities } from '@/lib/api';
 import { Activity, ArrowRight, Bookmark, Search as SearchIcon } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const opportunities = await getOpportunities();
   const recentOpportunities = opportunities.slice(0, 2);
 
   return (

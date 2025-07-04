@@ -1,22 +1,62 @@
 "use client"
 
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OpportunityCard } from '@/components/dashboard/opportunity-card';
-import { opportunities, type Opportunity } from '@/lib/data';
+import { type Opportunity } from '@/lib/data';
+import { getOpportunities } from '@/lib/api';
 import { Search as SearchIcon, X } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
+
+
+function OpportunitySkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-4 mt-2 w-1/2" />
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="h-5 w-3/4" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="h-5 w-3/4" />
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-5 w-1/3" />
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>(opportunities);
+  const [allOpportunities, setAllOpportunities] = useState<Opportunity[]>([]);
+  const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // In a real app, filtering logic would be more robust.
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      const ops = await getOpportunities();
+      setAllOpportunities(ops);
+      setFilteredOpportunities(ops);
+      setIsLoading(false);
+    };
+    loadData();
+  }, []);
+
   const handleSearch = () => {
-    const results = opportunities.filter(op => 
+    // In a real app, filtering logic would be more robust.
+    const results = allOpportunities.filter(op => 
       op.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       op.summary.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -25,7 +65,7 @@ export default function SearchPage() {
 
   const handleReset = () => {
     setSearchTerm('');
-    setFilteredOpportunities(opportunities);
+    setFilteredOpportunities(allOpportunities);
   };
 
   return (
@@ -63,16 +103,24 @@ export default function SearchPage() {
               </Select>
             </div>
             <div className="mt-4 flex gap-2">
-              <Button onClick={handleSearch}><SearchIcon className="mr-2 h-4 w-4" /> Search</Button>
-              <Button variant="outline" onClick={handleReset}><X className="mr-2 h-4 w-4" /> Reset</Button>
+              <Button onClick={handleSearch} disabled={isLoading}><SearchIcon className="mr-2 h-4 w-4" /> Search</Button>
+              <Button variant="outline" onClick={handleReset} disabled={isLoading}><X className="mr-2 h-4 w-4" /> Reset</Button>
             </div>
           </CardContent>
         </Card>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredOpportunities.map(opp => (
-            <OpportunityCard key={opp.id} opportunity={opp} />
-          ))}
+          {isLoading ? (
+            <>
+              <OpportunitySkeleton />
+              <OpportunitySkeleton />
+              <OpportunitySkeleton />
+            </>
+          ) : (
+            filteredOpportunities.map(opp => (
+              <OpportunityCard key={opp.id} opportunity={opp} />
+            ))
+          )}
         </div>
       </main>
     </div>
