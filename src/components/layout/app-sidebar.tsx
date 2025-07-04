@@ -57,11 +57,11 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 px-2">
             <Avatar>
                 <AvatarImage src="https://placehold.co/40x40.png" alt="User Avatar" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarFallback>KM</AvatarFallback>
             </Avatar>
             <div className="flex flex-col text-sm">
-                <span className="font-semibold text-sidebar-foreground">Jane Doe</span>
-                <span className="text-muted-foreground">Partnerships Officer</span>
+                <span className="font-semibold text-sidebar-foreground">Kelly McAulay</span>
+                <span className="text-muted-foreground">Senior Partnership Advisor to the Africa Region | Office of the Regional Director | Nairobi, Kenya.</span>
             </div>
         </div>
          <SidebarMenuButton asChild>

@@ -102,8 +102,8 @@ export const opportunities: Opportunity[] = [
 ];
 
 export const userProfile = {
-  name: 'Jane Doe',
-  role: 'Partnerships Officer',
+  name: 'Kelly McAulay',
+  role: 'Senior Partnership Advisor to the Africa Region | Office of the Regional Director | Nairobi, Kenya.',
   expertise: 'Specializes in humanitarian aid and post-conflict recovery projects. Strong experience in West Africa.',
   contact: 'jane.doe@unops.org',
 };
