@@ -99,6 +99,107 @@ export const opportunities: Opportunity[] = [
       { type: 'EU Delegation', name: 'Pedro Costa', details: 'Digital Transformation Lead, EU Delegation to Angola' }
     ],
   },
+  {
+    id: '5',
+    title: 'Peace and Security Architecture in the Sahel',
+    country: 'Regional',
+    subRegion: 'West Africa',
+    fundingAmount: '€25,000,000',
+    status: 'Open',
+    deadline: '2025-06-30',
+    fundingInstrument: 'NDICI - Global Europe',
+    fundingType: 'Development',
+    thematicPrio: 'Peace',
+    summary: 'Strengthening regional cooperation on peace and security matters in the Sahel G5 countries. Focus on cross-border security and counter-terrorism.',
+    eligibility: 'Regional organizations, Member States agencies, and international bodies with a mandate in peace and security.',
+    applicationProcess: 'Direct negotiation with pre-identified key partners. A restricted call may be published for specific components.',
+    mipPrios: ['Security, peace and governance'],
+    documents: [{ name: 'Regional MIP for Sub-Saharan Africa.pdf', url: '#' }],
+    contacts: [
+      { type: 'Internal UNOPS', name: 'Frank Miller', details: 'Senior Programme Manager, Sahel' },
+      { type: 'EU Delegation', name: 'DG INTPA Unit G1', details: 'Peace, Stability and Security' },
+    ],
+  },
+  {
+    id: '6',
+    title: 'Climate-Smart Agriculture for Rural Kenya',
+    country: 'Kenya',
+    subRegion: 'East Africa',
+    fundingAmount: '€12,000,000',
+    status: 'Open',
+    deadline: '2024-11-30',
+    fundingInstrument: 'Global Gateway',
+    fundingType: 'Development',
+    thematicPrio: 'Green Deal',
+    summary: 'Promoting climate-resilient agricultural practices among smallholder farmers in arid and semi-arid lands of Kenya to enhance food security and livelihoods.',
+    eligibility: 'Open to Kenyan CSOs, research institutions, and private sector actors in the agricultural value chain. International partners must have a local office.',
+    applicationProcess: 'Submit a full proposal via the EU Funding & Tenders portal. Guidelines detail required annexes, including PADOR registration.',
+    mipPrios: ['Green Transition', 'Sustainable growth and jobs'],
+    documents: [{ name: 'MIP for Kenya.pdf', url: '#' }, { name: 'Call for Proposals Guide.pdf', url: '#' }],
+    contacts: [
+      { type: 'EU Delegation', name: 'Susan Otieno', details: 'Agriculture Programme Manager, EU Delegation to Kenya' },
+    ],
+  },
+  {
+    id: '7',
+    title: 'Support to Civil Society in Democratic Republic of Congo',
+    country: 'DRC',
+    subRegion: 'Central Africa',
+    fundingAmount: '€7,500,000',
+    status: 'Upcoming',
+    deadline: '2025-04-15',
+    fundingInstrument: 'NDICI - Thematic Programmes',
+    fundingType: 'Development',
+    thematicPrio: 'Human Rights',
+    summary: 'Strengthening the capacity of civil society organizations in DRC to participate in democratic processes, advocate for human rights, and monitor public policies.',
+    eligibility: 'Local and international non-profit organizations with at least 5 years of experience working on governance and human rights in DRC.',
+    applicationProcess: 'A call for proposals will be published on the EU Delegation website. Information sessions will be held in Kinshasa and Goma.',
+    mipPrios: ['Human rights and democracy', 'Civil society actors'],
+    documents: [],
+    contacts: [
+      { type: 'Internal UNOPS', name: 'Chloe Dubois', details: 'Liaison Officer, Central Africa' },
+    ],
+  },
+  {
+    id: '8',
+    title: 'Emergency Food Assistance for Northern Nigeria',
+    country: 'Nigeria',
+    subRegion: 'West Africa',
+    fundingAmount: '€10,000,000',
+    status: 'Open',
+    deadline: '2024-09-30',
+    fundingInstrument: 'Humanitarian Implementation Plans (HIPs)',
+    fundingType: 'Humanitarian',
+    thematicPrio: 'Food Security',
+    summary: 'To provide life-saving food and nutrition assistance to conflict-affected populations in Northeast Nigeria, addressing acute malnutrition and food insecurity.',
+    eligibility: 'ECHO-certified partners with active FPA (Framework Partnership Agreement). Strong logistics and access in Borno, Adamawa, and Yobe states required.',
+    applicationProcess: 'Partners to submit proposals directly in the APPEL system. Close coordination with OCHA and the Food Security sector is essential.',
+    mipPrios: [],
+    documents: [{ name: 'HIP West Africa 2024.pdf', url: '#' }],
+    contacts: [
+      { type: 'DG ECHO', name: 'Abuja Office', details: 'For technical questions regarding the intervention.' },
+    ],
+  },
+    {
+    id: '9',
+    title: 'Green Energy Transition in South Africa',
+    country: 'South Africa',
+    subRegion: 'Southern Africa',
+    fundingAmount: '€50,000,000',
+    status: 'Open',
+    deadline: '2025-03-20',
+    fundingInstrument: 'Global Gateway / Just Energy Transition Partnership',
+    fundingType: 'Development',
+    thematicPrio: 'Green Deal',
+    summary: 'Large-scale support for South Africa\'s transition away from coal, focusing on renewable energy infrastructure, grid modernization, and support for affected communities.',
+    eligibility: 'Public entities, development finance institutions, and large private sector consortia. Proposals must align with the JETP Investment Plan.',
+    applicationProcess: 'Primarily through blending and guarantees. Interested parties should engage with the EU Delegation and relevant South African government departments. Specific calls may be issued for technical assistance components.',
+    mipPrios: ['Green and digital transition', 'Sustainable growth and jobs'],
+    documents: [{ name: 'JETP Investment Plan.pdf', url: '#' }],
+    contacts: [
+       { type: 'EU Delegation', name: 'Investment Team', details: 'jetp.sa@eeas.europa.eu' },
+    ],
+  }
 ];
 
 export const userProfile = {
@@ -153,6 +254,14 @@ export const supportContent = {
       question: 'What is NDICI-Global Europe?',
       answer: 'It is the EU\'s main financing instrument for development cooperation and international partnership for the 2021-2027 period.',
     },
+     {
+      question: 'How do I use the AI Opportunity Matching tool?',
+      answer: 'On any opportunity details page, click the "Analyze Relevance" button. The AI will assess the opportunity against your user profile and recent activity to provide a relevance score and a brief explanation.',
+    },
+     {
+      question: 'Can I save my search filters?',
+      answer: 'Yes, on the dashboard you can find a "Saved Searches" section. This feature allows you to quickly run frequent searches with a single click. Adding and managing saved searches will be enhanced in future updates.',
+    }
   ],
   glossary: [
     {
@@ -167,6 +276,14 @@ export const supportContent = {
       term: 'Global Gateway',
       definition: 'The EU\'s strategy to boost smart, clean and secure links in digital, energy and transport sectors and to strengthen health, education and research systems across the world.',
     },
+    {
+      term: 'DG ECHO',
+      definition: 'The Directorate-General for European Civil Protection and Humanitarian Aid Operations. It is the European Commission\'s department for overseas humanitarian aid and for civil protection.',
+    },
+     {
+      term: 'PADOR',
+      definition: 'Potential Applicant Data On-Line Registration. A database where organisations can register and upload their data, which is then used by the European Commission for checking the eligibility of applicants.',
+    }
   ],
   contacts: [
     { name: 'Global EU Partnership Lead', details: 'John Doe, john.doe@unops.org' },

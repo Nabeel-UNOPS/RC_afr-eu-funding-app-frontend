@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -38,10 +38,29 @@ function OpportunitySkeleton() {
 }
 
 export default function SearchPage() {
-  const [searchTerm, setSearchTerm] = useState('');
   const [allOpportunities, setAllOpportunities] = useState<Opportunity[]>([]);
   const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedFundingType, setSelectedFundingType] = useState('');
+  const [selectedThematicPrio, setSelectedThematicPrio] = useState('');
+
+  // Memoized dropdown options
+  const { countries, fundingTypes, thematicPrios } = useMemo(() => {
+    const ops = allOpportunities;
+    const uniqueCountries = [...new Set(ops.map(op => op.country))].sort();
+    const uniqueFundingTypes = [...new Set(ops.map(op => op.fundingType))].sort();
+    const uniqueThematicPrios = [...new Set(ops.map(op => op.thematicPrio))].sort();
+    return {
+      countries: uniqueCountries,
+      fundingTypes: uniqueFundingTypes,
+      thematicPrios: uniqueThematicPrios,
+    };
+  }, [allOpportunities]);
+
 
   useEffect(() => {
     const loadData = async () => {
@@ -54,18 +73,37 @@ export default function SearchPage() {
     loadData();
   }, []);
 
-  const handleSearch = () => {
-    // In a real app, filtering logic would be more robust.
-    const results = allOpportunities.filter(op => 
-      op.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      op.summary.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  useEffect(() => {
+    let results = allOpportunities;
+
+    if (searchTerm) {
+      const lowercasedTerm = searchTerm.toLowerCase();
+      results = results.filter(op =>
+        op.title.toLowerCase().includes(lowercasedTerm) ||
+        op.summary.toLowerCase().includes(lowercasedTerm)
+      );
+    }
+    
+    if (selectedCountry) {
+      results = results.filter(op => op.country === selectedCountry);
+    }
+
+    if (selectedFundingType) {
+      results = results.filter(op => op.fundingType === selectedFundingType);
+    }
+
+    if (selectedThematicPrio) {
+      results = results.filter(op => op.thematicPrio === selectedThematicPrio);
+    }
+
     setFilteredOpportunities(results);
-  };
+  }, [searchTerm, selectedCountry, selectedFundingType, selectedThematicPrio, allOpportunities]);
 
   const handleReset = () => {
     setSearchTerm('');
-    setFilteredOpportunities(allOpportunities);
+    setSelectedCountry('');
+    setSelectedFundingType('');
+    setSelectedThematicPrio('');
   };
 
   return (
@@ -89,22 +127,30 @@ export default function SearchPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Select>
-                <SelectTrigger><SelectValue placeholder="Country" /></SelectTrigger>
-                <SelectContent><SelectItem value="benin">Benin</SelectItem></SelectContent>
+              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                <SelectTrigger><SelectValue placeholder="All Countries" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Countries</SelectItem>
+                  {countries.map(country => <SelectItem key={country} value={country}>{country}</SelectItem>)}
+                </SelectContent>
               </Select>
-              <Select>
-                <SelectTrigger><SelectValue placeholder="Funding Type" /></SelectTrigger>
-                <SelectContent><SelectItem value="dev">Development</SelectItem></SelectContent>
+              <Select value={selectedFundingType} onValueChange={setSelectedFundingType}>
+                <SelectTrigger><SelectValue placeholder="All Funding Types" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Funding Types</SelectItem>
+                  {fundingTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                </SelectContent>
               </Select>
-              <Select>
-                <SelectTrigger><SelectValue placeholder="Thematic Priority" /></SelectTrigger>
-                <SelectContent><SelectItem value="econ">Economic Growth</SelectItem></SelectContent>
+              <Select value={selectedThematicPrio} onValueChange={setSelectedThematicPrio}>
+                <SelectTrigger><SelectValue placeholder="All Thematic Priorities" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Thematic Priorities</SelectItem>
+                  {thematicPrios.map(prio => <SelectItem key={prio} value={prio}>{prio}</SelectItem>)}
+                </SelectContent>
               </Select>
             </div>
             <div className="mt-4 flex gap-2">
-              <Button onClick={handleSearch} disabled={isLoading}><SearchIcon className="mr-2 h-4 w-4" /> Search</Button>
-              <Button variant="outline" onClick={handleReset} disabled={isLoading}><X className="mr-2 h-4 w-4" /> Reset</Button>
+              <Button variant="outline" onClick={handleReset} disabled={isLoading}><X className="mr-2 h-4 w-4" /> Reset Filters</Button>
             </div>
           </CardContent>
         </Card>
@@ -115,11 +161,21 @@ export default function SearchPage() {
               <OpportunitySkeleton />
               <OpportunitySkeleton />
               <OpportunitySkeleton />
+              <OpportunitySkeleton />
+              <OpportunitySkeleton />
+              <OpportunitySkeleton />
             </>
           ) : (
-            filteredOpportunities.map(opp => (
-              <OpportunityCard key={opp.id} opportunity={opp} />
-            ))
+            filteredOpportunities.length > 0 ? (
+              filteredOpportunities.map(opp => (
+                <OpportunityCard key={opp.id} opportunity={opp} />
+              ))
+            ) : (
+               <div className="col-span-full text-center text-muted-foreground py-10">
+                <p>No opportunities match your current filters.</p>
+                <p className="text-sm">Try adjusting your search criteria.</p>
+              </div>
+            )
           )}
         </div>
       </main>
