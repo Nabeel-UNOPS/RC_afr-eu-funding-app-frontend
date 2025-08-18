@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getOpportunityById } from '@/lib/api';
+import { getOpportunityById, getOpportunities } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,6 +8,12 @@ import { Download, Calendar, Euro, MapPin, Building, User, Mail, Globe } from 'l
 import { AiMatcher } from '@/components/opportunities/ai-matcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
+export async function generateStaticParams() {
+  const opportunities = await getOpportunities();
+  return opportunities.map((opportunity) => ({
+    id: opportunity.id,
+  }));
+}
 
 export default async function OpportunityDetailPage({ params }: { params: { id: string } }) {
   const opportunity = await getOpportunityById(params.id);
