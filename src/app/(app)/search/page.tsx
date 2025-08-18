@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -110,6 +111,10 @@ export default function SearchPage() {
     setSelectedThematicPrio('');
   };
 
+  const handleSelectChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (value: string) => {
+    setter(value === "all" ? "" : value);
+  };
+
   return (
     <div className="flex flex-1 flex-col bg-background">
       <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-8">
@@ -132,24 +137,24 @@ export default function SearchPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 disabled={isLoading}
               />
-              <Select value={selectedCountry} onValueChange={setSelectedCountry} disabled={isLoading || countries.length === 0}>
+              <Select value={selectedCountry} onValueChange={handleSelectChange(setSelectedCountry)} disabled={isLoading || countries.length === 0}>
                 <SelectTrigger><SelectValue placeholder="All Countries" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Countries</SelectItem>
+                  <SelectItem value="all">All Countries</SelectItem>
                   {countries.map(country => <SelectItem key={country} value={country}>{country}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={selectedFundingType} onValueChange={setSelectedFundingType} disabled={isLoading || fundingTypes.length === 0}>
+              <Select value={selectedFundingType} onValueChange={handleSelectChange(setSelectedFundingType)} disabled={isLoading || fundingTypes.length === 0}>
                 <SelectTrigger><SelectValue placeholder="All Funding Types" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Funding Types</SelectItem>
+                  <SelectItem value="all">All Funding Types</SelectItem>
                   {fundingTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={selectedThematicPrio} onValueChange={setSelectedThematicPrio} disabled={isLoading || thematicPrios.length === 0}>
+              <Select value={selectedThematicPrio} onValueChange={handleSelectChange(setSelectedThematicPrio)} disabled={isLoading || thematicPrios.length === 0}>
                 <SelectTrigger><SelectValue placeholder="All Thematic Priorities" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Thematic Priorities</SelectItem>
+                  <SelectItem value="all">All Thematic Priorities</SelectItem>
                   {thematicPrios.map(prio => <SelectItem key={prio} value={prio}>{prio}</SelectItem>)}
                 </SelectContent>
               </Select>
