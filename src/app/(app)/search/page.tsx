@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OpportunityCard } from '@/components/dashboard/opportunity-card';
-import { type Opportunity } from '@/lib/data';
+import type { Opportunity } from '@/lib/data';
 import { getOpportunities } from '@/lib/api';
 import { Search as SearchIcon, X } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -39,7 +39,6 @@ function OpportunitySkeleton() {
 
 export default function SearchPage() {
   const [allOpportunities, setAllOpportunities] = useState<Opportunity[]>([]);
-  const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Filter states
@@ -48,12 +47,29 @@ export default function SearchPage() {
   const [selectedFundingType, setSelectedFundingType] = useState('');
   const [selectedThematicPrio, setSelectedThematicPrio] = useState('');
 
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const ops = await getOpportunities();
+        setAllOpportunities(ops);
+      } catch (error) {
+        console.error("Failed to load opportunities:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
   // Memoized dropdown options
   const { countries, fundingTypes, thematicPrios } = useMemo(() => {
-    const ops = allOpportunities;
-    const uniqueCountries = [...new Set(ops.map(op => op.country))].sort();
-    const uniqueFundingTypes = [...new Set(ops.map(op => op.fundingType))].sort();
-    const uniqueThematicPrios = [...new Set(ops.map(op => op.thematicPrio))].sort();
+    if (!allOpportunities.length) {
+      return { countries: [], fundingTypes: [], thematicPrios: [] };
+    }
+    const uniqueCountries = [...new Set(allOpportunities.map(op => op.country))].sort();
+    const uniqueFundingTypes = [...new Set(allOpportunities.map(op => op.fundingType))].sort();
+    const uniqueThematicPrios = [...new Set(allOpportunities.map(op => op.thematicPrio))].sort();
     return {
       countries: uniqueCountries,
       fundingTypes: uniqueFundingTypes,
@@ -61,19 +77,7 @@ export default function SearchPage() {
     };
   }, [allOpportunities]);
 
-
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      const ops = await getOpportunities();
-      setAllOpportunities(ops);
-      setFilteredOpportunities(ops);
-      setIsLoading(false);
-    };
-    loadData();
-  }, []);
-
-  useEffect(() => {
+  const filteredOpportunities = useMemo(() => {
     let results = allOpportunities;
 
     if (searchTerm) {
@@ -96,7 +100,7 @@ export default function SearchPage() {
       results = results.filter(op => op.thematicPrio === selectedThematicPrio);
     }
 
-    setFilteredOpportunities(results);
+    return results;
   }, [searchTerm, selectedCountry, selectedFundingType, selectedThematicPrio, allOpportunities]);
 
   const handleReset = () => {
@@ -126,22 +130,23 @@ export default function SearchPage() {
                 className="lg:col-span-2"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                disabled={isLoading}
               />
-              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+              <Select value={selectedCountry} onValueChange={setSelectedCountry} disabled={isLoading || countries.length === 0}>
                 <SelectTrigger><SelectValue placeholder="All Countries" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All Countries</SelectItem>
                   {countries.map(country => <SelectItem key={country} value={country}>{country}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={selectedFundingType} onValueChange={setSelectedFundingType}>
+              <Select value={selectedFundingType} onValueChange={setSelectedFundingType} disabled={isLoading || fundingTypes.length === 0}>
                 <SelectTrigger><SelectValue placeholder="All Funding Types" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All Funding Types</SelectItem>
                   {fundingTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={selectedThematicPrio} onValueChange={setSelectedThematicPrio}>
+              <Select value={selectedThematicPrio} onValueChange={setSelectedThematicPrio} disabled={isLoading || thematicPrios.length === 0}>
                 <SelectTrigger><SelectValue placeholder="All Thematic Priorities" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All Thematic Priorities</SelectItem>
