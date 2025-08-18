@@ -9,7 +9,6 @@ import type { OpportunityMatchingOutput } from '@/ai/flows/opportunity-matching'
 import type { Opportunity } from '@/lib/data';
 import { Skeleton } from '../ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { getAiRecommendation } from '@/app/actions';
 
 type AiMatcherProps = {
   opportunity: Opportunity;
