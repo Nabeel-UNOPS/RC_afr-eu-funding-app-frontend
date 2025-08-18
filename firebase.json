@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "unops-funding-gateway",
     "public": "out",
     "ignore": [
       "firebase.json",

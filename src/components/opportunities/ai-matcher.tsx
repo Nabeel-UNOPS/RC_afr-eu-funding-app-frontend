@@ -23,17 +23,23 @@ export function AiMatcher({ opportunity }: AiMatcherProps) {
   const handleMatch = async () => {
     setLoading(true);
     setResult(null);
-    const response = await getAiRecommendation(opportunity);
-    if ('error' in response) {
-      toast({
-        variant: "destructive",
-        title: "AI Matching Failed",
-        description: response.error,
-      });
-    } else {
-      setResult(response);
-    }
+    // Server-side features are disabled for static export
+    setResult({
+      relevanceScore: Math.random() * (0.9 - 0.5) + 0.5, // Simulate a score
+      recommendationReason: "AI analysis is not available in this static version of the app. This is a placeholder relevance score."
+    });
     setLoading(false);
+    // const response = await getAiRecommendation(opportunity);
+    // if ('error' in response) {
+    //   toast({
+    //     variant: "destructive",
+    //     title: "AI Matching Failed",
+    //     description: response.error,
+    //   });
+    // } else {
+    //   setResult(response);
+    // }
+    // setLoading(false);
   };
 
   return (
