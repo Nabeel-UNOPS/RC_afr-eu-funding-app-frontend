@@ -3,19 +3,26 @@ import { Logo } from '@/components/icons';
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="flex flex-col items-center justify-center text-center">
-          <Logo className="mb-4 h-16 w-16 text-primary" />
-          <h1 className="font-headline text-3xl font-bold text-primary">
-            AFR EU Funds Navigator
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            UNOPS Africa Region Funding Pilot Database
-          </p>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-8">
+      <div className="flex w-full max-w-md flex-col items-center text-center">
+        <div className="flex items-center gap-3">
+           <Logo className="h-12 w-12 text-primary" />
+           <div>
+            <h1 className="font-headline text-3xl font-bold text-foreground">
+              AFR EU Funds Navigator
+            </h1>
+             <p className="text-muted-foreground">
+              Your gateway to EU funding opportunities in Africa.
+            </p>
+           </div>
         </div>
+        
         <LoginForm />
+
+        <p className="mt-10 text-xs text-muted-foreground">
+          This is a pilot application for authorized UNOPS personnel.
+        </p>
       </div>
-    </div>
+    </main>
   );
 }

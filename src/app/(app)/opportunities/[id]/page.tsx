@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getOpportunityById } from '@/lib/api';
+import { getOpportunities, getOpportunityById } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Download, Calendar, Euro, MapPin, Building, User, Mail, Globe } from 'lucide-react';
 import { AiMatcher } from '@/components/opportunities/ai-matcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+
+// This function tells Next.js which pages to build using placeholder data
+export async function generateStaticParams() {
+  const opportunities = await getOpportunities();
+ 
+  // Return an array of objects in the required format
+  return opportunities.map((opportunity) => ({
+    id: opportunity.id.toString(),
+  }));
+}
+
 
 export default async function OpportunityDetailPage({ params }: { params: { id: string } }) {
   const opportunity = await getOpportunityById(params.id);

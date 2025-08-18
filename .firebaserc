@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "unops-cameron"
+  },
+  "targets": {
+    "unops-cameron": {
+      "hosting": {
+        "unops-funding": [
+          "unops-funding-gateway"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
