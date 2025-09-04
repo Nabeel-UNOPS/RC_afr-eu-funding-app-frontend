@@ -15,8 +15,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function OpportunityDetailPage({ params }: { params: { id: string } }) {
-  const opportunity = await getOpportunityById(params.id);
+export default async function OpportunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const opportunity = await getOpportunityById(resolvedParams.id);
 
   if (!opportunity) {
     notFound();

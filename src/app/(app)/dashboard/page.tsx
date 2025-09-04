@@ -3,16 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { StatsCard } from '@/components/dashboard/stats-card';
-import { OpportunityCard } from '@/components/dashboard/opportunity-card';
-import { userProfile } from '@/lib/data';
+import { DashboardData } from '@/components/dashboard/dashboard-data';
+import { userProfile, type Opportunity } from '@/lib/data';
 import { getOpportunities } from '@/lib/api';
-import { Activity, ArrowRight, Bookmark, Search as SearchIcon } from 'lucide-react';
+import { Search as SearchIcon } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export default async function DashboardPage() {
-  const opportunities = await getOpportunities();
-  const recentOpportunities = opportunities.slice(0, 2);
+  // Try to get initial data server-side, but handle errors gracefully
+  let initialOpportunities: Opportunity[] = [];
+  try {
+    initialOpportunities = await getOpportunities();
+  } catch (error) {
+    console.error("Failed to load initial opportunities:", error);
+    initialOpportunities = [];
+  }
 
   return (
     <div className="flex flex-1 flex-col bg-background">
@@ -34,47 +39,42 @@ export default async function DashboardPage() {
       </header>
 
       <main className="flex-1 space-y-8 p-4 md:p-8">
-        {/* At-a-Glance Statistics */}
-        <section>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <StatsCard
-              title="Active Opportunities"
-              value={opportunities.filter(op => op.status === 'Open').length.toString()}
-              icon={Activity}
-              description="Funds currently open for application"
-            />
-            <StatsCard
-              title="Total Available Funding"
-              value="~€48M"
-              icon={Activity}
-              description="Across all open opportunities"
-            />
-            <StatsCard
-              title="Upcoming Deadlines"
-              value="2"
-              icon={Activity}
-              description="In the next 90 days"
-            />
-          </div>
-        </section>
+        {/* Dashboard Data with Stats and Recent Opportunities */}
+        <DashboardData fallbackOpportunities={initialOpportunities} />
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          {/* What's New Section */}
+          {/* Navigation Section */}
           <section className="space-y-4 lg:col-span-2">
             <div className="flex items-center justify-between">
               <h2 className="font-headline text-2xl font-semibold tracking-tight">
-                What&apos;s New
+                Quick Actions
               </h2>
-              <Link href="/search">
-                <Button variant="outline" size="sm">
-                  View All <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
             </div>
-            <div className="space-y-4">
-              {recentOpportunities.map((opp) => (
-                <OpportunityCard key={opp.id} opportunity={opp} />
-              ))}
+            <div className="grid gap-4 md:grid-cols-2">
+              <Link href="/search">
+                <Card className="transition-all hover:shadow-md hover:border-primary/50 cursor-pointer">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <SearchIcon className="h-8 w-8 text-primary" />
+                    <div>
+                      <h3 className="font-semibold">Search Opportunities</h3>
+                      <p className="text-sm text-muted-foreground">Find funding that matches your needs</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/notifications">
+                <Card className="transition-all hover:shadow-md hover:border-primary/50 cursor-pointer">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-primary font-semibold">!</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">View Notifications</h3>
+                      <p className="text-sm text-muted-foreground">Stay updated on new opportunities</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
           </section>
 
@@ -83,7 +83,10 @@ export default async function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-headline">
-                  <Bookmark className="h-5 w-5" /> Saved Searches
+                  <div className="h-5 w-5 rounded bg-primary/10 flex items-center justify-center">
+                    <span className="text-primary text-xs">★</span>
+                  </div>
+                  Saved Searches
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">

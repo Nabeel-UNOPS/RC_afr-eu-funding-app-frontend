@@ -12,6 +12,7 @@ import { getOpportunities } from '@/lib/api';
 import { Search as SearchIcon, X } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ApiErrorBoundary } from '@/components/ui/api-error-boundary';
 
 
 function OpportunitySkeleton() {
@@ -41,6 +42,7 @@ function OpportunitySkeleton() {
 export default function SearchPage() {
   const [allOpportunities, setAllOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,18 +50,21 @@ export default function SearchPage() {
   const [selectedFundingType, setSelectedFundingType] = useState('');
   const [selectedThematicPrio, setSelectedThematicPrio] = useState('');
 
+  const loadData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const ops = await getOpportunities();
+      setAllOpportunities(ops);
+    } catch (error) {
+      console.error("Failed to load opportunities:", error);
+      setError("Failed to load funding opportunities");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const ops = await getOpportunities();
-        setAllOpportunities(ops);
-      } catch (error) {
-        console.error("Failed to load opportunities:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     loadData();
   }, []);
 
@@ -175,6 +180,14 @@ export default function SearchPage() {
               <OpportunitySkeleton />
               <OpportunitySkeleton />
             </>
+          ) : error ? (
+            <div className="col-span-full">
+              <ApiErrorBoundary 
+                error={error} 
+                onRetry={loadData}
+                showRetry={true}
+              />
+            </div>
           ) : (
             filteredOpportunities.length > 0 ? (
               filteredOpportunities.map(opp => (
