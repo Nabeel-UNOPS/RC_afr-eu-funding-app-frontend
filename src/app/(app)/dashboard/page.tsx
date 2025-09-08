@@ -3,10 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardData } from '@/components/dashboard/dashboard-data';
+import { AIEnhancedDashboard } from '@/components/dashboard/ai-enhanced-dashboard';
 import { userProfile, type Opportunity } from '@/lib/data';
-import { getOpportunities } from '@/lib/api';
-import { Search as SearchIcon } from 'lucide-react';
+import { getOpportunities } from '@/lib/enhanced-api';
+import { Search as SearchIcon, Brain, BarChart3 } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export default async function DashboardPage() {
@@ -39,8 +41,29 @@ export default async function DashboardPage() {
       </header>
 
       <main className="flex-1 space-y-8 p-4 md:p-8">
-        {/* Dashboard Data with Stats and Recent Opportunities */}
-        <DashboardData fallbackOpportunities={initialOpportunities} />
+        {/* Enhanced Dashboard with AI Insights */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="overview" className="flex items-center space-x-2">
+              <BarChart3 className="h-4 w-4" />
+              <span>Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-insights" className="flex items-center space-x-2">
+              <Brain className="h-4 w-4" />
+              <span>AI Insights</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            {/* Traditional Dashboard Data */}
+            <DashboardData fallbackOpportunities={initialOpportunities} />
+          </TabsContent>
+
+          <TabsContent value="ai-insights" className="space-y-6">
+            {/* AI-Enhanced Dashboard */}
+            <AIEnhancedDashboard />
+          </TabsContent>
+        </Tabs>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Navigation Section */}
