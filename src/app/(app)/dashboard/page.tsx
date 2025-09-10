@@ -6,14 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardData } from '@/components/dashboard/dashboard-data';
 import { AIEnhancedDashboard } from '@/components/dashboard/ai-enhanced-dashboard';
-import { userProfile, type Opportunity } from '@/lib/data';
 import { getOpportunities } from '@/lib/enhanced-api';
+import { userProfile, type Opportunity } from '@/lib/data';
+import type { EnhancedOpportunity } from '@/lib/enhanced-api';
 import { Search as SearchIcon, Brain, BarChart3 } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export default async function DashboardPage() {
   // Try to get initial data server-side, but handle errors gracefully
-  let initialOpportunities: Opportunity[] = [];
+  let initialOpportunities: EnhancedOpportunity[] = [];
   try {
     initialOpportunities = await getOpportunities();
   } catch (error) {

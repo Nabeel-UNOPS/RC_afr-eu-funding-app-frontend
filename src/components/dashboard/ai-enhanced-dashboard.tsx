@@ -14,10 +14,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Brain, Database, Globe, Zap, RefreshCw, TrendingUp, Activity } from 'lucide-react';
-import { api, type AIStats, type CollectionStatus } from '@/lib/enhanced-api';
+import { api, type AIStats, type CollectionStatus, type EnhancedOpportunity, getOpportunities } from '@/lib/enhanced-api';
+import { OpportunityCard } from '@/components/dashboard/opportunity-card';
 
 export function AIEnhancedDashboard() {
   const [aiStats, setAiStats] = useState<AIStats | null>(null);
+  const [opportunities, setOpportunities] = useState<EnhancedOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCollecting, setIsCollecting] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string>('');
@@ -25,8 +27,18 @@ export function AIEnhancedDashboard() {
 
   useEffect(() => {
     loadAIStats();
+    loadOpportunities();
     setLastUpdate(new Date().toLocaleTimeString());
   }, []);
+
+  const loadOpportunities = async () => {
+    try {
+      const ops = await getOpportunities();
+      setOpportunities(ops.slice(0, 6)); // Show top 6 opportunities
+    } catch (err) {
+      console.error('Error loading opportunities:', err);
+    }
+  };
 
   const loadAIStats = async () => {
     try {
@@ -48,9 +60,10 @@ export function AIEnhancedDashboard() {
       const result = await api.triggerDataCollection();
       
       if (result.success) {
-        // Refresh stats after a delay
+        // Refresh stats and opportunities after a delay
         setTimeout(() => {
           loadAIStats();
+          loadOpportunities();
           setIsCollecting(false);
         }, 3000);
       } else {
@@ -351,6 +364,36 @@ export function AIEnhancedDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* AI-Enhanced Opportunities Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">AI-Enhanced Opportunities</h3>
+          <Badge variant="secondary">{opportunities.length} Live Opportunities</Badge>
+        </div>
+        
+        {opportunities.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {opportunities.map((opportunity) => (
+              <OpportunityCard key={opportunity.id} opportunity={opportunity} />
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="text-center py-8">
+              <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h4 className="font-medium mb-2">No Enhanced Opportunities</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Click "Collect Data" to fetch and enhance new opportunities
+              </p>
+              <Button onClick={triggerDataCollection} disabled={isCollecting} size="sm">
+                <Zap className="h-4 w-4 mr-2" />
+                Collect Data
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

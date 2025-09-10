@@ -4,16 +4,17 @@ import { useState, useEffect } from 'react';
 import { OpportunityCard } from '@/components/dashboard/opportunity-card';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { ApiErrorBoundary } from '@/components/ui/api-error-boundary';
-import { getOpportunities } from '@/lib/api';
+import { getOpportunities } from '@/lib/enhanced-api';
 import type { Opportunity } from '@/lib/data';
+import type { EnhancedOpportunity } from '@/lib/enhanced-api';
 import { Activity, Bookmark } from 'lucide-react';
 
 interface DashboardDataProps {
-  fallbackOpportunities?: Opportunity[];
+  fallbackOpportunities?: EnhancedOpportunity[];
 }
 
 export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps) {
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(fallbackOpportunities);
+  const [opportunities, setOpportunities] = useState<EnhancedOpportunity[]>(fallbackOpportunities);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
