@@ -1,3 +1,4 @@
+"use client";
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,22 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardData } from '@/components/dashboard/dashboard-data';
 import { AIEnhancedDashboard } from '@/components/dashboard/ai-enhanced-dashboard';
-import { getOpportunities } from '@/lib/enhanced-api';
-import { userProfile, type Opportunity } from '@/lib/data';
-import type { EnhancedOpportunity } from '@/lib/enhanced-api';
+import { userProfile } from '@/lib/data';
 import { Search as SearchIcon, Brain, BarChart3 } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
-export default async function DashboardPage() {
-  // Try to get initial data server-side, but handle errors gracefully
-  let initialOpportunities: EnhancedOpportunity[] = [];
-  try {
-    initialOpportunities = await getOpportunities();
-  } catch (error) {
-    console.error("Failed to load initial opportunities:", error);
-    initialOpportunities = [];
-  }
-
+export default function DashboardPage() {
   return (
     <div className="flex flex-1 flex-col bg-background">
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-8">
@@ -57,7 +47,7 @@ export default async function DashboardPage() {
 
           <TabsContent value="overview" className="space-y-6">
             {/* Traditional Dashboard Data */}
-            <DashboardData fallbackOpportunities={initialOpportunities} />
+            <DashboardData />
           </TabsContent>
 
           <TabsContent value="ai-insights" className="space-y-6">
