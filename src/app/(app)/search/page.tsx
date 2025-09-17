@@ -1,23 +1,17 @@
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
+import { Card, CardContent } from '@/components/ui/card';
 import { OpportunityCard } from '@/components/dashboard/opportunity-card';
 import { EnhancedOpportunityCard } from '@/components/opportunities/enhanced-opportunity-card';
-import type { Opportunity } from '@/lib/data';
+import { OpportunityFiltersComponent, type OpportunityFilters } from '@/components/opportunities/opportunity-filters';
 import { getOpportunities, type EnhancedOpportunity } from '@/lib/enhanced-api';
-import { Search as SearchIcon, X, Brain, Filter, Sparkles } from 'lucide-react';
+import { Search as SearchIcon, Brain, Sparkles, RefreshCw } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiErrorBoundary } from '@/components/ui/api-error-boundary';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 
 function OpportunitySkeleton() {
   return (
@@ -47,22 +41,16 @@ export default function SearchPage() {
   const [allOpportunities, setAllOpportunities] = useState<EnhancedOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('');
-  const [selectedFundingType, setSelectedFundingType] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedThematicPrio, setSelectedThematicPrio] = useState('');
-  const [showAIEnhancedOnly, setShowAIEnhancedOnly] = useState(false);
-  const [minRelevanceScore, setMinRelevanceScore] = useState([0]);
   const [useEnhancedView, setUseEnhancedView] = useState(true);
+
+  // Filter state
+  const [filters, setFilters] = useState<OpportunityFilters>({});
 
   const loadData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const ops = await getOpportunities();
+      const ops = await getOpportunities(filters);
       setAllOpportunities(ops);
     } catch (error) {
       console.error("Failed to load opportunities:", error);
@@ -76,29 +64,12 @@ export default function SearchPage() {
     loadData();
   }, []);
 
-  // Memoized dropdown options
-  const { countries, fundingTypes, thematicPrios, statuses } = useMemo(() => {
-    if (!allOpportunities.length) {
-      return { countries: [], fundingTypes: [], thematicPrios: [], statuses: [] };
-    }
-    const uniqueCountries = [...new Set(allOpportunities.map(op => op.country))].sort();
-    const uniqueFundingTypes = [...new Set(allOpportunities.map(op => op.fundingType))].sort();
-    const uniqueThematicPrios = [...new Set(allOpportunities.map(op => op.thematicPrio))].sort();
-    const uniqueStatuses = [...new Set(allOpportunities.map(op => op.status))].sort();
-    return {
-      countries: uniqueCountries,
-      fundingTypes: uniqueFundingTypes,
-      thematicPrios: uniqueThematicPrios,
-      statuses: uniqueStatuses,
-    };
-  }, [allOpportunities]);
-
   const filteredOpportunities = useMemo(() => {
     let results = allOpportunities;
 
-    // Text search - enhanced to include AI summary
-    if (searchTerm) {
-      const lowercasedTerm = searchTerm.toLowerCase();
+    // Text search
+    if (filters.search) {
+      const lowercasedTerm = filters.search.toLowerCase();
       results = results.filter(op =>
         op.title.toLowerCase().includes(lowercasedTerm) ||
         op.summary.toLowerCase().includes(lowercasedTerm) ||
@@ -110,34 +81,24 @@ export default function SearchPage() {
     }
 
     // Country filter
-    if (selectedCountry) {
-      results = results.filter(op => op.country === selectedCountry);
+    if (filters.country) {
+      results = results.filter(op => op.country === filters.country);
     }
 
     // Funding type filter
-    if (selectedFundingType) {
-      results = results.filter(op => op.fundingType === selectedFundingType);
+    if (filters.funding_type && filters.funding_type !== 'All') {
+      results = results.filter(op => op.fundingType === filters.funding_type);
     }
 
-    // Status filter
-    if (selectedStatus) {
-      results = results.filter(op => op.status === selectedStatus);
+    // Subregion filter
+    if (filters.subregion) {
+      results = results.filter(op => op.subRegion === filters.subregion);
     }
 
     // Thematic priority filter
-    if (selectedThematicPrio) {
-      results = results.filter(op => op.thematicPrio === selectedThematicPrio);
-    }
-
-    // AI enhanced only filter
-    if (showAIEnhancedOnly) {
-      results = results.filter(op => op.ai_enhanced);
-    }
-
-    // Relevance score filter
-    if (minRelevanceScore[0] > 0) {
+    if (filters.thematic_priority) {
       results = results.filter(op => 
-        op.african_relevance_score && op.african_relevance_score >= minRelevanceScore[0]
+        op.thematicPrio.toLowerCase().includes(filters.thematic_priority!.toLowerCase())
       );
     }
 
@@ -148,20 +109,15 @@ export default function SearchPage() {
       }
       return a.title.localeCompare(b.title);
     });
-  }, [allOpportunities, searchTerm, selectedCountry, selectedFundingType, selectedStatus, selectedThematicPrio, showAIEnhancedOnly, minRelevanceScore]);
+  }, [allOpportunities, filters]);
 
-  const handleReset = () => {
-    setSearchTerm('');
-    setSelectedCountry('');
-    setSelectedFundingType('');
-    setSelectedStatus('');
-    setSelectedThematicPrio('');
-    setShowAIEnhancedOnly(false);
-    setMinRelevanceScore([0]);
+  const handleSearch = () => {
+    loadData();
   };
 
-  const handleSelectChange = (setter: React.Dispatch<React.SetStateAction<string>>) => (value: string) => {
-    setter(value === "all" ? "" : value);
+  const handleClear = () => {
+    setFilters({});
+    loadData();
   };
 
   // Calculate AI stats for display
@@ -194,6 +150,15 @@ export default function SearchPage() {
             <Sparkles className="h-4 w-4" />
             <span>Avg Relevance: {avgRelevanceScore.toFixed(0)}/100</span>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadData}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
       </header>
 
@@ -203,110 +168,13 @@ export default function SearchPage() {
             <p className="text-center text-muted-foreground">Failed to load opportunities. Please try again later.</p>
           </Card>
         }>
-          {/* Enhanced Filters */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-6">
-                {/* Basic Filters */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                  <Input
-                    placeholder="Search by keyword..."
-                    className="xl:col-span-2"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  
-                  <Select value={selectedCountry} onValueChange={handleSelectChange(setSelectedCountry)} disabled={isLoading || countries.length === 0}>
-                    <SelectTrigger><SelectValue placeholder="All Countries" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Countries</SelectItem>
-                      {countries.map(country => (
-                        <SelectItem key={country} value={country}>{country}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={selectedFundingType} onValueChange={handleSelectChange(setSelectedFundingType)} disabled={isLoading || fundingTypes.length === 0}>
-                    <SelectTrigger><SelectValue placeholder="All Funding Types" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Funding Types</SelectItem>
-                      {fundingTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={selectedStatus} onValueChange={handleSelectChange(setSelectedStatus)} disabled={isLoading || statuses.length === 0}>
-                    <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      {statuses.map(status => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* AI-Enhanced Filters */}
-                <div className="space-y-4 border-t pt-4">
-                  <h3 className="flex items-center space-x-2 text-lg font-medium">
-                    <Brain className="h-5 w-5" />
-                    <span>AI-Enhanced Filters</span>
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="ai-enhanced-only"
-                        checked={showAIEnhancedOnly}
-                        onCheckedChange={setShowAIEnhancedOnly}
-                      />
-                      <Label htmlFor="ai-enhanced-only">AI Enhanced Only</Label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="enhanced-view"
-                        checked={useEnhancedView}
-                        onCheckedChange={setUseEnhancedView}
-                      />
-                      <Label htmlFor="enhanced-view">Enhanced View</Label>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Min. Relevance Score: {minRelevanceScore[0]}</Label>
-                      <Slider
-                        value={minRelevanceScore}
-                        onValueChange={setMinRelevanceScore}
-                        max={100}
-                        step={10}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-between border-t pt-4">
-                  <div className="text-sm text-muted-foreground">
-                    {isLoading ? 'Loading...' : `${filteredOpportunities.length} opportunities found`}
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <Button variant="outline" onClick={handleReset} disabled={isLoading}>
-                      <X className="mr-2 h-4 w-4" />
-                      Reset Filters
-                    </Button>
-                    <Button onClick={loadData} disabled={isLoading}>
-                      <SearchIcon className="mr-2 h-4 w-4" />
-                      Refresh Data
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Filter Component */}
+          <OpportunityFiltersComponent
+            filters={filters}
+            onFiltersChange={setFilters}
+            onSearch={handleSearch}
+            onClear={handleClear}
+          />
 
           {/* Results */}
           {error && (
@@ -332,8 +200,8 @@ export default function SearchPage() {
                 <p className="text-muted-foreground">
                   Try adjusting your search criteria or reset all filters.
                 </p>
-                <Button onClick={handleReset} className="mt-4">
-                  Reset Filters
+                <Button onClick={handleClear} className="mt-4">
+                  Clear Filters
                 </Button>
               </div>
             </Card>

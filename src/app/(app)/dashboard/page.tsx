@@ -32,29 +32,14 @@ export default function DashboardPage() {
       </header>
 
       <main className="flex-1 space-y-8 p-4 md:p-8">
-        {/* Enhanced Dashboard with AI Insights */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview" className="flex items-center space-x-2">
-              <BarChart3 className="h-4 w-4" />
-              <span>Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="ai-insights" className="flex items-center space-x-2">
-              <Brain className="h-4 w-4" />
-              <span>AI Insights</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* Traditional Dashboard Data */}
-            <DashboardData />
-          </TabsContent>
-
-          <TabsContent value="ai-insights" className="space-y-6">
-            {/* AI-Enhanced Dashboard */}
-            <AIEnhancedDashboard />
-          </TabsContent>
-        </Tabs>
+        {/* Unified Dashboard with AI Insights */}
+        <div className="space-y-6">
+          {/* Traditional Dashboard Data */}
+          <DashboardData />
+          
+          {/* AI-Enhanced Dashboard */}
+          <AIEnhancedDashboard />
+        </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Navigation Section */}

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getOpportunityById, getOpportunities } from '@/lib/api';
+import { getOpportunityById, getOpportunities } from '@/lib/enhanced-api';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,9 +15,8 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function OpportunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
-  const opportunity = await getOpportunityById(resolvedParams.id);
+export default async function OpportunityDetailPage({ params }: { params: { id: string } }) {
+  const opportunity = await getOpportunityById(params.id);
 
   if (!opportunity) {
     notFound();
@@ -64,7 +63,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
                       <p className="text-sm text-muted-foreground">{opportunity.summary}</p>
                        <h3 className="mt-4 font-semibold">MIP Priority Areas</h3>
                       <ul className="mt-2 list-disc pl-5 text-sm text-muted-foreground">
-                        {opportunity.mipPrios.map(p => <li key={p}>{p}</li>)}
+                        {opportunity.mipPrios?.map(p => <li key={p}>{p}</li>) || <li>Development priorities</li>}
                       </ul>
                     </TabsContent>
                     <TabsContent value="eligibility">
@@ -83,7 +82,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
             <Card>
               <CardHeader><CardTitle className="font-headline">Contacts</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                {opportunity.contacts.map(c => (
+                {opportunity.contacts?.map(c => (
                   <div key={c.name} className="flex items-start gap-4">
                     {c.type.includes('UNOPS') ? <Building className="h-5 w-5 text-primary"/> : <Globe className="h-5 w-5 text-primary"/>}
                     <div>
@@ -106,13 +105,42 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="font-headline">Documents</CardTitle></CardHeader>
-              <CardContent className="space-y-2">
-                {opportunity.documents.map(doc => (
-                  <Button key={doc.name} variant="outline" className="w-full justify-start gap-2">
-                    <Download className="h-4 w-4" /> {doc.name}
-                  </Button>
-                ))}
+              <CardHeader><CardTitle className="font-headline">Source & Documents</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                {/* Source Website Link */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Official Source</h4>
+                  <a 
+                    href={opportunity.source_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <Button variant="default" className="w-full justify-start gap-2">
+                      <Globe className="h-4 w-4" />
+                      Visit Official Website
+                    </Button>
+                  </a>
+                  <p className="text-xs text-muted-foreground">
+                    Get the latest information directly from the source
+                  </p>
+                </div>
+
+                {/* Documents */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Documents</h4>
+                  {opportunity.documents?.map(doc => (
+                    <a key={doc.name} href={doc.url} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" className="w-full justify-start gap-2">
+                        <Download className="h-4 w-4" /> {doc.name}
+                      </Button>
+                    </a>
+                  )) || (
+                    <div className="text-center text-muted-foreground py-2">
+                      <p className="text-sm">No additional documents available</p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
             <AiMatcher opportunity={opportunity} />

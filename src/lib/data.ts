@@ -203,10 +203,10 @@ export const opportunities: Opportunity[] = [
 ];
 
 export const userProfile = {
-  name: 'Kelly McAulay',
-  role: 'Senior Partnership Advisor to the Africa Region | Office of the Regional Director | Nairobi, Kenya.',
-  expertise: 'Specializes in humanitarian aid and post-conflict recovery projects. Strong experience in West Africa.',
-  contact: 'jane.doe@unops.org',
+  name: 'Nabeel Siddiqui',
+  role: 'IM & Analytics Officer | Peace and Security Cluster | Global Portfolios Office | New York, USA',
+  expertise: 'Specializes in data analytics, information management, and peace and security initiatives. Strong experience in global portfolios.',
+  contact: 'nabeel.siddiqui@unops.org',
 };
 
 export const notifications = [

@@ -57,7 +57,7 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
 
   const openOpportunities = opportunities.filter(op => op.status === 'Open');
   const upcomingOpportunities = opportunities.filter(op => op.status === 'Upcoming');
-  const recentOpportunities = opportunities.slice(0, 2);
+  const recentOpportunities = opportunities.slice(0, 6);
 
   return (
     <>
