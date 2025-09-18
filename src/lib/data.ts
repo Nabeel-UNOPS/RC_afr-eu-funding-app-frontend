@@ -286,7 +286,6 @@ export const supportContent = {
     }
   ],
   contacts: [
-    { name: 'Global EU Partnership Lead', details: 'John Doe, john.doe@unops.org' },
-    { name: 'AFR Regional Partnerships Advisor', details: 'Fatima Ahmed, fatima.ahmed@unops.org' },
+    { name: 'Senior Partnership Advisor to the Africa Region', details: 'Kelly Mcaulay, kellymc@unops.org' },
   ]
 };

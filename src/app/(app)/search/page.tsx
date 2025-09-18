@@ -6,7 +6,7 @@ import { OpportunityCard } from '@/components/dashboard/opportunity-card';
 import { EnhancedOpportunityCard } from '@/components/opportunities/enhanced-opportunity-card';
 import { OpportunityFiltersComponent, type OpportunityFilters } from '@/components/opportunities/opportunity-filters';
 import { getOpportunities, type EnhancedOpportunity } from '@/lib/enhanced-api';
-import { Search as SearchIcon, Brain, Sparkles, RefreshCw } from 'lucide-react';
+import { Search as SearchIcon, RefreshCw } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiErrorBoundary } from '@/components/ui/api-error-boundary';
@@ -50,11 +50,63 @@ export default function SearchPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const ops = await getOpportunities(filters);
-      setAllOpportunities(ops);
+      console.log("Loading opportunities from API...");
+      
+      // Try multiple API endpoints for better reliability
+      const apiEndpoints = [
+        'https://us-central1-unops-cameron.cloudfunctions.net/api-function/opportunities',
+        'https://us-central1-unops-cameron.cloudfunctions.net/run_intelligent_ingestion?endpoint=opportunities'
+      ];
+      
+      let lastError = null;
+      
+      for (const endpoint of apiEndpoints) {
+        try {
+          console.log(`Trying endpoint: ${endpoint}`);
+          const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            mode: 'cors',
+          });
+          
+          console.log("Response status:", response.status);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log("API Response:", data);
+            
+            // Handle different response formats
+            let opportunities = [];
+            if (data.opportunities && Array.isArray(data.opportunities)) {
+              opportunities = data.opportunities;
+            } else if (data.status === 'success' && data.opportunities && Array.isArray(data.opportunities)) {
+              opportunities = data.opportunities;
+            } else if (Array.isArray(data)) {
+              opportunities = data;
+            }
+            
+            if (opportunities.length > 0) {
+              console.log("Setting opportunities:", opportunities.length);
+              setAllOpportunities(opportunities);
+              return; // Success, exit the function
+            }
+          }
+        } catch (endpointError) {
+          console.error(`Endpoint ${endpoint} failed:`, endpointError);
+          lastError = endpointError;
+          continue; // Try next endpoint
+        }
+      }
+      
+      // If all endpoints failed
+      throw lastError || new Error('All API endpoints failed');
+      
     } catch (error) {
       console.error("Failed to load opportunities:", error);
-      setError("Failed to load funding opportunities");
+      setError(`Failed to load funding opportunities. Please check your internet connection and try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -120,12 +172,6 @@ export default function SearchPage() {
     loadData();
   };
 
-  // Calculate AI stats for display
-  const aiEnhancedCount = allOpportunities.filter(op => op.ai_enhanced).length;
-  const avgRelevanceScore = allOpportunities
-    .filter(op => op.african_relevance_score)
-    .reduce((sum, op) => sum + (op.african_relevance_score || 0), 0) / 
-    Math.max(allOpportunities.filter(op => op.african_relevance_score).length, 1);
 
   return (
     <div className="flex flex-1 flex-col bg-background">
@@ -140,26 +186,16 @@ export default function SearchPage() {
           </Badge>
         </div>
         
-        {/* AI Stats */}
-        <div className="hidden lg:flex items-center space-x-4 text-sm text-muted-foreground">
-          <div className="flex items-center space-x-1">
-            <Brain className="h-4 w-4" />
-            <span>{aiEnhancedCount} AI Enhanced</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Sparkles className="h-4 w-4" />
-            <span>Avg Relevance: {avgRelevanceScore.toFixed(0)}/100</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadData}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
+          onClick={loadData}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </header>
 
       <main className="flex-1 space-y-8 p-4 md:p-8">

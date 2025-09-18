@@ -1,93 +1,62 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Bell, BellOff, Settings, AlertCircle, CheckCircle, Clock, Globe } from 'lucide-react';
-import { EnhancedOpportunity } from '@/lib/enhanced-api';
+import { FundingOpportunity, SearchFilters } from '@/lib/filters';
 
-export interface NotificationSettings {
+interface NotificationSettings {
   enabled: boolean;
-  newOpportunities: boolean;
-  deadlineAlerts: boolean;
-  countrySpecific: boolean;
-  thematicPriority: string[];
+  frequency: 'realtime' | 'daily' | 'weekly' | 'monthly';
   countries: string[];
+  thematicPriorities: string[];
   fundingTypes: string[];
-  alertFrequency: 'immediate' | 'daily' | 'weekly';
+  budgetThreshold: number;
+  statusFilter: string[];
+  emailNotifications: boolean;
+  browserNotifications: boolean;
 }
 
-export interface Notification {
+interface NotificationItem {
   id: string;
-  type: 'new_opportunity' | 'deadline_alert' | 'country_update' | 'thematic_update';
+  type: 'new_opportunity' | 'deadline_reminder' | 'status_change' | 'system_update';
   title: string;
   message: string;
   timestamp: Date;
   read: boolean;
-  opportunityId?: string;
-  country?: string;
-  thematicPriority?: string;
+  priority: 'low' | 'medium' | 'high';
+  opportunity?: FundingOpportunity;
+  actionUrl?: string;
 }
 
-const DEFAULT_SETTINGS: NotificationSettings = {
-  enabled: true,
-  newOpportunities: true,
-  deadlineAlerts: true,
-  countrySpecific: false,
-  thematicPriority: [],
-  countries: [],
-  fundingTypes: ['Development', 'Humanitarian'],
-  alertFrequency: 'daily'
-};
+interface NotificationSystemProps {
+  opportunities: FundingOpportunity[];
+  onNotificationClick?: (notification: NotificationItem) => void;
+}
 
-const THEMATIC_PRIORITIES = [
-  'Sustainable economic growth',
-  'Green and digital transition',
-  'Human development',
-  'Governance and rule of law',
-  'Migration and mobility',
-  'Security and stability',
-  'Climate action',
-  'Digital transformation',
-  'Education and training',
-  'Health and social protection',
-  'Agriculture and rural development',
-  'Infrastructure and connectivity',
-  'Private sector development',
-  'Civil society and media',
-  'Youth and gender equality'
-];
-
-const COUNTRIES = [
-  'Benin',
-  'Burkina Faso',
-  'Cameroon',
-  'Chad',
-  'Côte d\'Ivoire',
-  'Ghana',
-  'Guinea',
-  'Liberia',
-  'Mali',
-  'Niger',
-  'Nigeria',
-  'Senegal',
-  'Sierra Leone',
-  'Togo',
-  'Sub-Saharan Africa'
-];
-
-const FUNDING_TYPES = ['Development', 'Humanitarian'];
-
-export function NotificationSystem() {
-  const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_SETTINGS);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+export function NotificationSystem({ opportunities, onNotificationClick }: NotificationSystemProps) {
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [settings, setSettings] = useState<NotificationSettings>({
+    enabled: true,
+    frequency: 'daily',
+    countries: [],
+    thematicPriorities: [],
+    fundingTypes: [],
+    budgetThreshold: 100000,
+    statusFilter: ['Open', 'Forthcoming'],
+    emailNotifications: true,
+    browserNotifications: true
+  });
   const [showSettings, setShowSettings] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Load settings from localStorage on mount
+  // Load settings from localStorage
   useEffect(() => {
     const savedSettings = localStorage.getItem('notification-settings');
     if (savedSettings) {
@@ -95,344 +64,348 @@ export function NotificationSystem() {
     }
   }, []);
 
-  // Save settings to localStorage when changed
+  // Save settings to localStorage
   useEffect(() => {
     localStorage.setItem('notification-settings', JSON.stringify(settings));
   }, [settings]);
 
-  // Generate mock notifications based on settings
+  // Generate notifications based on opportunities and settings
   useEffect(() => {
-    if (!settings.enabled) {
-      setNotifications([]);
-      return;
-    }
+    if (!settings.enabled) return;
 
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'new_opportunity',
-        title: 'New Funding Opportunity: Climate Action in West Africa',
-        message: 'A new climate action funding opportunity has been posted for West African countries.',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        read: false,
-        opportunityId: 'climate-action-001',
-        country: 'West Africa',
-        thematicPriority: 'Climate action'
-      },
-      {
-        id: '2',
-        type: 'deadline_alert',
-        title: 'Deadline Approaching: Education Initiative',
-        message: 'The application deadline for the Education Initiative in Ghana is approaching in 3 days.',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-        read: false,
-        opportunityId: 'education-ghana-001',
-        country: 'Ghana',
-        thematicPriority: 'Education and training'
-      },
-      {
-        id: '3',
-        type: 'country_update',
-        title: 'New Opportunities in Nigeria',
-        message: '3 new funding opportunities have been added for Nigeria.',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-        read: true,
-        country: 'Nigeria'
-      },
-      {
-        id: '4',
-        type: 'thematic_update',
-        title: 'Health & Social Protection Updates',
-        message: 'New health and social protection opportunities are now available.',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-        read: true,
-        thematicPriority: 'Health and social protection'
+    const newNotifications: NotificationItem[] = [];
+
+    // Check for new opportunities
+    opportunities.forEach(opportunity => {
+      // Check if opportunity matches user's criteria
+      if (matchesNotificationCriteria(opportunity, settings)) {
+        // Check if we already have a notification for this opportunity
+        const existingNotification = notifications.find(n => 
+          n.opportunity?.id === opportunity.id && n.type === 'new_opportunity'
+        );
+
+        if (!existingNotification) {
+          newNotifications.push({
+            id: `new-${opportunity.id}-${Date.now()}`,
+            type: 'new_opportunity',
+            title: 'New Funding Opportunity',
+            message: `${opportunity.title} - ${opportunity.fundingAmount}`,
+            timestamp: new Date(),
+            read: false,
+            priority: getPriority(opportunity),
+            opportunity,
+            actionUrl: opportunity.source_url
+          });
+        }
       }
-    ];
 
-    // Filter notifications based on settings
-    let filteredNotifications = mockNotifications;
+      // Check for deadline reminders (7 days before deadline)
+      if (opportunity.deadline && opportunity.deadline !== 'No deadline specified') {
+        const deadline = new Date(opportunity.deadline);
+        const now = new Date();
+        const daysUntilDeadline = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntilDeadline <= 7 && daysUntilDeadline > 0) {
+          const existingReminder = notifications.find(n => 
+            n.opportunity?.id === opportunity.id && n.type === 'deadline_reminder'
+          );
 
-    if (settings.countrySpecific && settings.countries.length > 0) {
-      filteredNotifications = filteredNotifications.filter(notif => 
-        !notif.country || settings.countries.includes(notif.country)
+          if (!existingReminder) {
+            newNotifications.push({
+              id: `deadline-${opportunity.id}-${Date.now()}`,
+              type: 'deadline_reminder',
+              title: 'Deadline Reminder',
+              message: `${opportunity.title} deadline in ${daysUntilDeadline} days`,
+              timestamp: new Date(),
+              read: false,
+              priority: daysUntilDeadline <= 3 ? 'high' : 'medium',
+              opportunity,
+              actionUrl: opportunity.source_url
+            });
+          }
+        }
+      }
+    });
+
+    if (newNotifications.length > 0) {
+      setNotifications(prev => [...newNotifications, ...prev]);
+      setUnreadCount(prev => prev + newNotifications.length);
+    }
+  }, [opportunities, settings]);
+
+  const matchesNotificationCriteria = (opportunity: FundingOpportunity, settings: NotificationSettings): boolean => {
+    // Check countries
+    if (settings.countries.length > 0) {
+      const hasMatchingCountry = settings.countries.some(country =>
+        opportunity.geographical_focus.toLowerCase().includes(country.toLowerCase())
       );
+      if (!hasMatchingCountry) return false;
     }
 
-    if (settings.thematicPriority.length > 0) {
-      filteredNotifications = filteredNotifications.filter(notif => 
-        !notif.thematicPriority || settings.thematicPriority.includes(notif.thematicPriority)
+    // Check thematic priorities
+    if (settings.thematicPriorities.length > 0) {
+      const hasMatchingTheme = settings.thematicPriorities.some(theme =>
+        opportunity.thematic_priorities.some(oppTheme => 
+          oppTheme.toLowerCase().includes(theme.toLowerCase())
+        )
       );
+      if (!hasMatchingTheme) return false;
     }
 
-    setNotifications(filteredNotifications);
-  }, [settings]);
+    // Check funding types
+    if (settings.fundingTypes.length > 0) {
+      if (!settings.fundingTypes.includes(opportunity.funding_type)) return false;
+    }
 
-  const handleSettingsChange = (key: keyof NotificationSettings, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    // Check budget threshold
+    const budgetAmount = extractBudgetAmount(opportunity.fundingAmount);
+    if (budgetAmount && budgetAmount < settings.budgetThreshold) return false;
+
+    // Check status
+    if (settings.statusFilter.length > 0) {
+      if (!settings.statusFilter.includes(opportunity.status)) return false;
+    }
+
+    return true;
   };
 
-  const handleToggleRead = (notificationId: string) => {
+  const getPriority = (opportunity: FundingOpportunity): 'low' | 'medium' | 'high' => {
+    const budgetAmount = extractBudgetAmount(opportunity.fundingAmount);
+    if (budgetAmount && budgetAmount > 5000000) return 'high';
+    if (budgetAmount && budgetAmount > 1000000) return 'medium';
+    return 'low';
+  };
+
+  const extractBudgetAmount = (budgetString: string): number | null => {
+    if (!budgetString || budgetString === 'Contact for details') return null;
+    const match = budgetString.match(/€?([\d,.\s]+)/);
+    if (match) {
+      const amount = parseFloat(match[1].replace(/[,\s]/g, ''));
+      if (budgetString.includes('M')) return amount * 1000000;
+      if (budgetString.includes('K')) return amount * 1000;
+      return amount;
+    }
+    return null;
+  };
+
+  const markAsRead = (notificationId: string) => {
     setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === notificationId ? { ...notif, read: !notif.read } : notif
-      )
+      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
     );
+    setUnreadCount(prev => Math.max(0, prev - 1));
   };
 
-  const handleMarkAllRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
   };
 
-  const handleClearAll = () => {
+  const clearNotifications = () => {
     setNotifications([]);
+    setUnreadCount(0);
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const handleNotificationClick = (notification: NotificationItem) => {
+    markAsRead(notification.id);
+    if (onNotificationClick) {
+      onNotificationClick(notification);
+    }
+  };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'new_opportunity':
-        return <Bell className="h-4 w-4 text-blue-500" />;
-      case 'deadline_alert':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      case 'country_update':
-        return <Globe className="h-4 w-4 text-green-500" />;
-      case 'thematic_update':
-        return <CheckCircle className="h-4 w-4 text-purple-500" />;
+        return <Globe className="h-4 w-4 text-green-600" />;
+      case 'deadline_reminder':
+        return <Clock className="h-4 w-4 text-orange-600" />;
+      case 'status_change':
+        return <AlertCircle className="h-4 w-4 text-blue-600" />;
+      case 'system_update':
+        return <Settings className="h-4 w-4 text-gray-600" />;
       default:
         return <Bell className="h-4 w-4" />;
     }
   };
 
-  const formatTimestamp = (timestamp: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) {
-      return `${days} day${days > 1 ? 's' : ''} ago`;
-    } else if (hours > 0) {
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    } else {
-      return 'Just now';
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low':
+        return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Bell className="h-6 w-6" />
-          <h2 className="text-2xl font-semibold">Notifications</h2>
-          {unreadCount > 0 && (
-            <Badge variant="destructive">{unreadCount}</Badge>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
-          </Button>
-          {unreadCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleMarkAllRead}
-            >
-              Mark All Read
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Settings Panel */}
-      {showSettings && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Notification Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="notifications-enabled">Enable Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Receive notifications about new opportunities and updates
-                </p>
-              </div>
-              <Switch
-                id="notifications-enabled"
-                checked={settings.enabled}
-                onCheckedChange={(checked) => handleSettingsChange('enabled', checked)}
-              />
+    <div className="space-y-4 w-full max-w-none">
+      {/* Notification Header */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              {settings.enabled ? (
+                <Bell className="h-5 w-5 text-green-600" />
+              ) : (
+                <BellOff className="h-5 w-5 text-gray-400" />
+              )}
+              Notifications
+              {unreadCount > 0 && (
+                <Badge variant="destructive" className="ml-2">
+                  {unreadCount}
+                </Badge>
+              )}
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
+                onClick={() => setShowSettings(!showSettings)}
+              >
+                <Settings className="h-4 w-4 mr-1" />
+                Settings
+              </Button>
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hover:bg-blue-50 hover:text-blue-700"
+                  onClick={markAllAsRead}
+                >
+                  Mark All Read
+                </Button>
+              )}
             </div>
+          </div>
+        </CardHeader>
 
-            {settings.enabled && (
-              <>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="new-opportunities">New Opportunities</Label>
-                    <Switch
-                      id="new-opportunities"
-                      checked={settings.newOpportunities}
-                      onCheckedChange={(checked) => handleSettingsChange('newOpportunities', checked)}
-                    />
-                  </div>
+        {/* Settings Panel */}
+        {showSettings && (
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Switch
+                    checked={settings.enabled}
+                    onCheckedChange={(checked) => 
+                      setSettings(prev => ({ ...prev, enabled: checked }))
+                    }
+                  />
+                  Enable Notifications
+                </Label>
+              </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="deadline-alerts">Deadline Alerts</Label>
-                    <Switch
-                      id="deadline-alerts"
-                      checked={settings.deadlineAlerts}
-                      onCheckedChange={(checked) => handleSettingsChange('deadlineAlerts', checked)}
-                    />
-                  </div>
+              <div className="space-y-2">
+                <Label>Frequency</Label>
+                <Select
+                  value={settings.frequency}
+                  onValueChange={(value: any) => 
+                    setSettings(prev => ({ ...prev, frequency: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="realtime">Real-time</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="country-specific">Country-Specific Alerts</Label>
-                    <Switch
-                      id="country-specific"
-                      checked={settings.countrySpecific}
-                      onCheckedChange={(checked) => handleSettingsChange('countrySpecific', checked)}
-                    />
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <Label>Budget Threshold (EUR)</Label>
+                <input
+                  type="number"
+                  value={settings.budgetThreshold}
+                  onChange={(e) => 
+                    setSettings(prev => ({ ...prev, budgetThreshold: parseInt(e.target.value) }))
+                  }
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
 
-                {settings.countrySpecific && (
-                  <div className="space-y-2">
-                    <Label>Countries to Monitor</Label>
-                    <Select
-                      value=""
-                      onValueChange={(value) => {
-                        if (value && !settings.countries.includes(value)) {
-                          handleSettingsChange('countries', [...settings.countries, value]);
-                        }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Add country to monitor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {COUNTRIES.filter(country => !settings.countries.includes(country)).map(country => (
-                          <SelectItem key={country} value={country}>{country}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex flex-wrap gap-2">
-                      {settings.countries.map(country => (
-                        <Badge key={country} variant="secondary" className="flex items-center gap-1">
-                          {country}
-                          <button
-                            onClick={() => handleSettingsChange('countries', settings.countries.filter(c => c !== country))}
-                            className="ml-1 hover:text-red-500"
-                          >
-                            ×
-                          </button>
-                        </Badge>
-                      ))}
+              <div className="space-y-2">
+                <Label>Status Filter</Label>
+                <div className="space-y-1">
+                  {['Open', 'Forthcoming', 'Closed'].map(status => (
+                    <div key={status} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`status-${status}`}
+                        checked={settings.statusFilter.includes(status)}
+                        onCheckedChange={(checked) => {
+                          const newStatusFilter = checked
+                            ? [...settings.statusFilter, status]
+                            : settings.statusFilter.filter(s => s !== status);
+                          setSettings(prev => ({ ...prev, statusFilter: newStatusFilter }));
+                        }}
+                      />
+                      <Label htmlFor={`status-${status}`} className="text-sm">
+                        {status}
+                      </Label>
                     </div>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label>Alert Frequency</Label>
-                  <Select
-                    value={settings.alertFrequency}
-                    onValueChange={(value) => handleSettingsChange('alertFrequency', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="immediate">Immediate</SelectItem>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  ))}
                 </div>
-              </>
-            )}
+              </div>
+            </div>
           </CardContent>
-        </Card>
-      )}
+        )}
+      </Card>
 
       {/* Notifications List */}
-      {!settings.enabled ? (
-        <Card className="p-8 text-center">
-          <BellOff className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Notifications Disabled</h3>
-          <p className="text-muted-foreground mb-4">
-            Enable notifications to receive updates about new funding opportunities.
-          </p>
-          <Button onClick={() => handleSettingsChange('enabled', true)}>
-            Enable Notifications
-          </Button>
-        </Card>
-      ) : notifications.length === 0 ? (
-        <Card className="p-8 text-center">
-          <CheckCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Notifications</h3>
-          <p className="text-muted-foreground">
-            You're all caught up! New notifications will appear here when available.
-          </p>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {notifications.map((notification) => (
-            <Card 
-              key={notification.id} 
-              className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                !notification.read ? 'border-l-4 border-l-blue-500 bg-blue-50/50' : ''
-              }`}
-              onClick={() => handleToggleRead(notification.id)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  {getNotificationIcon(notification.type)}
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className={`font-medium ${!notification.read ? 'font-semibold' : ''}`}>
-                        {notification.title}
-                      </h4>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          {formatTimestamp(notification.timestamp)}
-                        </span>
+      <Card>
+        <CardContent className="p-0">
+          {notifications.length === 0 ? (
+            <div className="p-6 text-center text-muted-foreground">
+              <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>No notifications yet</p>
+              <p className="text-sm">We'll notify you when new opportunities match your criteria</p>
+            </div>
+          ) : (
+            <div className="max-h-96 overflow-y-auto">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 border-b cursor-pointer hover:bg-gray-50 ${
+                    !notification.read ? 'bg-blue-50' : ''
+                  }`}
+                  onClick={() => handleNotificationClick(notification)}
+                >
+                  <div className="flex items-start gap-3">
+                    {getNotificationIcon(notification.type)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-sm">{notification.title}</h4>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${getPriorityColor(notification.priority)}`}
+                        >
+                          {notification.priority}
+                        </Badge>
                         {!notification.read && (
-                          <div className="h-2 w-2 bg-blue-500 rounded-full" />
+                          <div className="w-2 h-2 bg-blue-600 rounded-full" />
                         )}
                       </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {notification.message}
-                    </p>
-                    <div className="flex gap-2">
-                      {notification.country && (
-                        <Badge variant="outline" className="text-xs">
-                          {notification.country}
-                        </Badge>
-                      )}
-                      {notification.thematicPriority && (
-                        <Badge variant="outline" className="text-xs">
-                          {notification.thematicPriority}
-                        </Badge>
-                      )}
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {notification.timestamp.toLocaleString()}
+                      </p>
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

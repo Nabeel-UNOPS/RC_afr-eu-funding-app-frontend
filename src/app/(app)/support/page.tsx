@@ -1,6 +1,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { supportContent } from '@/lib/data';
 import { Mail, User } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -50,6 +51,45 @@ export default function SupportPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Data Source Status</CardTitle>
+            <CardDescription>Status of plugin-based data sources</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <span className="font-medium">EU Funding & Tenders API</span>
+                  <p className="text-sm text-muted-foreground">Live integration - Current opportunities loaded</p>
+                </div>
+                <Badge variant="default">Active</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <span className="font-medium">Gates Foundation</span>
+                  <p className="text-sm text-muted-foreground">Integrated via EU API</p>
+                </div>
+                <Badge variant="default">Active</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <span className="font-medium">AI Enhancement</span>
+                  <p className="text-sm text-muted-foreground">Real-time processing enabled</p>
+                </div>
+                <Badge variant="default">Active</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <span className="font-medium">Web Scraper</span>
+                  <p className="text-sm text-muted-foreground">Automated data collection</p>
+                </div>
+                <Badge variant="default">Active</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

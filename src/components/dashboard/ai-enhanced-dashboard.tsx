@@ -100,38 +100,6 @@ export function AIEnhancedDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Brain className="h-8 w-8 text-primary" />
-          <div>
-            <h2 className="text-2xl font-bold">AI-Enhanced Intelligence Dashboard</h2>
-            <p className="text-muted-foreground">
-              Real-time insights from the intelligent ingestion system
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button 
-            onClick={loadAIStats}
-            variant="outline" 
-            size="sm"
-            disabled={isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button 
-            onClick={triggerDataCollection}
-            disabled={isCollecting}
-            size="sm"
-          >
-            <Zap className={`h-4 w-4 mr-2 ${isCollecting ? 'animate-pulse' : ''}`} />
-            {isCollecting ? 'Collecting...' : 'Collect Data'}
-          </Button>
-        </div>
-      </div>
-
       {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
@@ -139,264 +107,31 @@ export function AIEnhancedDashboard() {
         </Alert>
       )}
 
-      {/* Status Indicators */}
-      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-        <div className="flex items-center space-x-1">
-          <Activity className="h-4 w-4" />
-          <span>Last updated: {lastUpdate}</span>
-        </div>
-        <div className="flex items-center space-x-1">
-          <div className={`h-2 w-2 rounded-full ${isCollecting ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`} />
-          <span>{isCollecting ? 'Collecting data...' : 'System operational'}</span>
-        </div>
-      </div>
-
-      {/* Main Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Opportunities</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {aiStats?.total_opportunities?.toLocaleString() || '0'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              From EU API + multiple sources
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI Enhanced</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {aiStats?.ai_enhanced_count?.toLocaleString() || '0'}
-            </div>
-            <div className="flex items-center space-x-2">
-              <Progress value={enhancementRate} className="flex-1" />
-              <span className="text-xs text-muted-foreground">{enhancementRate}%</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">African Relevance</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {aiStats?.average_relevance_score?.toFixed(1) || '0.0'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Average relevance score
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Quality Score</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {aiStats?.average_quality_score?.toFixed(1) || '0.0'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Data quality assessment
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detailed Analytics */}
-      <Tabs defaultValue="themes" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="themes">Top Themes</TabsTrigger>
-          <TabsTrigger value="sources">Data Sources</TabsTrigger>
-          <TabsTrigger value="insights">AI Insights</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="themes">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Funding Themes</CardTitle>
-              <CardDescription>
-                Most common themes identified by AI analysis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                {aiStats?.top_themes?.length > 0 ? (
-                  aiStats.top_themes.slice(0, 10).map((theme, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <span className="font-medium">{theme}</span>
-                      <Badge variant="secondary">
-                        Rank #{index + 1}
-                      </Badge>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground">No theme data available</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="sources">
-          <Card>
-            <CardHeader>
-              <CardTitle>Data Source Status</CardTitle>
-              <CardDescription>
-                Status of plugin-based data sources
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                {Object.entries(aiStats?.plugin_status || {}).map(([source, status]: [string, any]) => (
-                  <div key={source} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <span className="font-medium capitalize">{source.replace(/_/g, ' ')}</span>
-                      <p className="text-sm text-muted-foreground">
-                        {status?.last_run ? `Last run: ${new Date(status.last_run).toLocaleString()}` : 'Not run yet'}
-                      </p>
-                    </div>
-                    <Badge variant={status?.status === 'healthy' ? 'default' : 'destructive'}>
-                      {status?.status || 'Unknown'}
-                    </Badge>
-                  </div>
-                ))}
-                
-                {/* Live data sources */}
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <span className="font-medium">EU Funding & Tenders API</span>
-                    <p className="text-sm text-muted-foreground">Live integration - 13 opportunities loaded</p>
-                  </div>
-                  <Badge variant="default">Active</Badge>
+      {/* Top Funding Themes Only */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Top Funding Themes</CardTitle>
+          <CardDescription>
+            Most common themes identified by AI analysis
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3">
+            {aiStats?.top_themes?.length > 0 ? (
+              aiStats.top_themes.slice(0, 10).map((theme, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <span className="font-medium">{theme}</span>
+                  <Badge variant="secondary">
+                    Rank #{index + 1}
+                  </Badge>
                 </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <span className="font-medium">Gates Foundation</span>
-                    <p className="text-sm text-muted-foreground">Integrated via EU API</p>
-                  </div>
-                  <Badge variant="default">Active</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <span className="font-medium">AI Enhancement</span>
-                    <p className="text-sm text-muted-foreground">Real-time processing enabled</p>
-                  </div>
-                  <Badge variant="default">Active</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <span className="font-medium">Web Scraper</span>
-                    <p className="text-sm text-muted-foreground">Automated data collection</p>
-                  </div>
-                  <Badge variant="default">Active</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="insights">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Enhancement Metrics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm">
-                    <span>Processing Coverage</span>
-                    <span>{enhancementRate}%</span>
-                  </div>
-                  <Progress value={enhancementRate} className="mt-1" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm">
-                    <span>Quality Score</span>
-                    <span>{aiStats?.average_quality_score?.toFixed(1) || 0}/100</span>
-                  </div>
-                  <Progress value={aiStats?.average_quality_score || 0} className="mt-1" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm">
-                    <span>African Relevance</span>
-                    <span>{aiStats?.average_relevance_score?.toFixed(1) || 0}/100</span>
-                  </div>
-                  <Progress value={aiStats?.average_relevance_score || 0} className="mt-1" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>System Performance</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Data Sources</span>
-                  <Badge>{Object.keys(aiStats?.plugin_status || {}).length || 10}+ Active</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">AI Processing</span>
-                  <Badge variant="default">Gemini AI</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">EU API Status</span>
-                  <Badge variant="default">562K+ Records</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Last Collection</span>
-                  <span className="text-sm text-muted-foreground">
-                    {new Date().toLocaleDateString()}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+              ))
+            ) : (
+              <p className="text-muted-foreground">No theme data available</p>
+            )}
           </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* AI-Enhanced Opportunities Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">AI-Enhanced Opportunities</h3>
-          <Badge variant="secondary">{opportunities.length} Live Opportunities</Badge>
-        </div>
-        
-        {opportunities.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {opportunities.map((opportunity) => (
-              <OpportunityCard key={opportunity.id} opportunity={opportunity} />
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="text-center py-8">
-              <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h4 className="font-medium mb-2">No Enhanced Opportunities</h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                Click "Collect Data" to fetch and enhance new opportunities
-              </p>
-              <Button onClick={triggerDataCollection} disabled={isCollecting} size="sm">
-                <Zap className="h-4 w-4 mr-2" />
-                Collect Data
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

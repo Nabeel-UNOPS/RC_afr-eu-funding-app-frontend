@@ -31,7 +31,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
           <Logo className="h-8 w-8 text-sidebar-primary" />
-          <span className="font-headline text-lg font-semibold text-sidebar-foreground">AFR EU Funds</span>
+          <span className="font-headline text-base font-semibold text-sidebar-foreground">Africa Funding Gateway</span>
         </div>
       </SidebarHeader>
       <SidebarContent className="flex-grow">
@@ -57,11 +57,11 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 px-2">
             <Avatar>
                 <AvatarImage src="https://placehold.co/40x40.png" alt="User Avatar" />
-                <AvatarFallback>KM</AvatarFallback>
+                <AvatarFallback>NS</AvatarFallback>
             </Avatar>
             <div className="flex flex-col text-sm">
-                <span className="font-semibold text-sidebar-foreground">Kelly McAulay</span>
-                <span className="text-muted-foreground">Senior Partnership Advisor to the Africa Region | Office of the Regional Director | Nairobi, Kenya.</span>
+                <span className="font-semibold text-sidebar-foreground">Nabeel Siddiqui</span>
+                <span className="text-muted-foreground">IM & Analytics Officer | Peace and Security Cluster | Global Portfolios Office | New York, USA</span>
             </div>
         </div>
          <SidebarMenuButton asChild>

@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import { getOpportunityById, getOpportunities } from '@/lib/enhanced-api';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,15 +7,142 @@ import { Download, Calendar, Euro, MapPin, Building, User, Mail, Globe } from 'l
 import { AiMatcher } from '@/components/opportunities/ai-matcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
+// Mock opportunity data for demonstration
+const mockOpportunities = [
+  {
+    id: 'gates-global-health-2025',
+    title: 'Global Health Innovation Fund 2025',
+    description: 'Supporting innovative solutions for global health challenges including infectious diseases, maternal and child health, and health systems strengthening in developing countries.',
+    fundingAmount: '$50,000,000',
+    deadline: '2025-12-31',
+    status: 'Open',
+    programme: 'Gates Foundation',
+    country: 'Sub-Saharan Africa, South Asia',
+    subRegion: 'Africa',
+    source_url: 'https://www.gatesfoundation.org/about/committed-grants',
+    funding_type: 'Development',
+    thematic_priority: 'Global Health',
+    eligibility: 'Research organizations, universities, NGOs, government entities working in global health',
+    applicationProcess: 'Two-stage application process with initial concept note followed by full proposal',
+    summary: 'This fund supports innovative solutions for global health challenges, focusing on infectious diseases, maternal and child health, and health systems strengthening in developing countries.',
+    mipPrios: ['Global Health', 'Infectious Diseases', 'Maternal and Child Health', 'Health Systems'],
+    contacts: [
+      {
+        name: 'Gates Foundation Global Health Team',
+        type: 'External',
+        details: 'Contact through the official Gates Foundation website'
+      }
+    ],
+    documents: [
+      {
+        name: 'Application Guidelines',
+        url: 'https://www.gatesfoundation.org/about/committed-grants'
+      }
+    ]
+  },
+  {
+    id: 'gates-education-africa-2025',
+    title: 'Education Technology for Africa Initiative 2025',
+    description: 'Advancing educational outcomes through technology solutions and digital learning platforms across African countries, focusing on primary and secondary education.',
+    fundingAmount: '$25,000,000',
+    deadline: '2025-11-30',
+    status: 'Open',
+    programme: 'Gates Foundation',
+    country: 'Africa',
+    subRegion: 'Africa',
+    source_url: 'https://www.gatesfoundation.org/about/committed-grants',
+    funding_type: 'Development',
+    thematic_priority: 'Education',
+    eligibility: 'Educational institutions, technology companies, NGOs working in education',
+    applicationProcess: 'Single-stage application process with detailed project proposal',
+    summary: 'This initiative supports technology solutions and digital learning platforms across African countries, focusing on primary and secondary education.',
+    mipPrios: ['Education', 'Technology', 'Digital Learning', 'Primary Education'],
+    contacts: [
+      {
+        name: 'Gates Foundation Education Team',
+        type: 'External',
+        details: 'Contact through the official Gates Foundation website'
+      }
+    ],
+    documents: [
+      {
+        name: 'Project Proposal Template',
+        url: 'https://www.gatesfoundation.org/about/committed-grants'
+      }
+    ]
+  },
+  {
+    id: 'gates-agriculture-ssa-2025',
+    title: 'Agricultural Development in Sub-Saharan Africa 2025',
+    description: 'Supporting smallholder farmers and agricultural innovation to improve food security and rural development across Sub-Saharan Africa.',
+    fundingAmount: '$30,000,000',
+    deadline: '2025-10-15',
+    status: 'Open',
+    programme: 'Gates Foundation',
+    country: 'Sub-Saharan Africa',
+    subRegion: 'Africa',
+    source_url: 'https://www.gatesfoundation.org/about/committed-grants',
+    funding_type: 'Development',
+    thematic_priority: 'Agriculture and Food Security',
+    eligibility: 'Agricultural organizations, research institutions, NGOs working in agriculture',
+    applicationProcess: 'Multi-stage application process with concept note, full proposal, and site visit',
+    summary: 'This program supports smallholder farmers and agricultural innovation to improve food security and rural development across Sub-Saharan Africa.',
+    mipPrios: ['Agriculture', 'Food Security', 'Rural Development', 'Smallholder Farmers'],
+    contacts: [
+      {
+        name: 'Gates Foundation Agriculture Team',
+        type: 'External',
+        details: 'Contact through the official Gates Foundation website'
+      }
+    ],
+    documents: [
+      {
+        name: 'Application Guidelines',
+        url: 'https://www.gatesfoundation.org/about/committed-grants'
+      }
+    ]
+  },
+  {
+    id: 'gates-gender-equality-2025',
+    title: "Gender Equality and Women's Empowerment Fund 2025",
+    description: "Supporting initiatives that promote gender equality and women's empowerment in developing countries, with focus on economic opportunities and leadership.",
+    fundingAmount: '$20,000,000',
+    deadline: '2025-09-30',
+    status: 'Open',
+    programme: 'Gates Foundation',
+    country: 'Global',
+    subRegion: 'Global',
+    source_url: 'https://www.gatesfoundation.org/about/committed-grants',
+    funding_type: 'Development',
+    thematic_priority: 'Gender Equality',
+    eligibility: 'Women-led organizations, gender equality NGOs, research institutions',
+    applicationProcess: 'Two-stage application process with initial concept note followed by full proposal',
+    summary: "This fund supports initiatives that promote gender equality and women's empowerment in developing countries, with focus on economic opportunities and leadership.",
+    mipPrios: ['Gender Equality', 'Women Empowerment', 'Economic Opportunities', 'Leadership'],
+    contacts: [
+      {
+        name: 'Gates Foundation Gender Equality Team',
+        type: 'External',
+        details: 'Contact through the official Gates Foundation website'
+      }
+    ],
+    documents: [
+      {
+        name: 'Application Guidelines',
+        url: 'https://www.gatesfoundation.org/about/committed-grants'
+      }
+    ]
+  }
+];
+
 export async function generateStaticParams() {
-  const opportunities = await getOpportunities();
-  return opportunities.map((opportunity) => ({
+  return mockOpportunities.map((opportunity) => ({
     id: opportunity.id,
   }));
 }
 
 export default async function OpportunityDetailPage({ params }: { params: { id: string } }) {
-  const opportunity = await getOpportunityById(params.id);
+  const opportunity = mockOpportunities.find(op => op.id === params.id);
 
   if (!opportunity) {
     notFound();
