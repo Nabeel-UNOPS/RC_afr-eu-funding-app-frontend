@@ -24,6 +24,8 @@ export function AIEnhancedDashboard() {
   const [isCollecting, setIsCollecting] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12); // Show 12 opportunities per page
 
   useEffect(() => {
     loadAIStats();
@@ -34,9 +36,15 @@ export function AIEnhancedDashboard() {
   const loadOpportunities = async () => {
     try {
       const ops = await getOpportunities();
-      setOpportunities(ops.slice(0, 6)); // Show top 6 opportunities
+      console.log('Loaded opportunities for dashboard:', ops.length);
+      if (ops && ops.length > 0) {
+        setOpportunities(ops); // Show all opportunities - pagination will be handled by UI
+      } else {
+        console.warn('No opportunities loaded');
+      }
     } catch (err) {
       console.error('Error loading opportunities:', err);
+      setError('Failed to load opportunities');
     }
   };
 
@@ -98,6 +106,12 @@ export function AIEnhancedDashboard() {
     ? Math.round((aiStats.ai_enhanced_count / Math.max(aiStats.total_opportunities, 1)) * 100)
     : 0;
 
+  // Calculate pagination
+  const totalPages = Math.ceil(opportunities.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentOpportunities = opportunities.slice(startIndex, endIndex);
+
   return (
     <div className="space-y-6">
       {/* Error Alert */}
@@ -107,7 +121,54 @@ export function AIEnhancedDashboard() {
         </Alert>
       )}
 
-      {/* Top Funding Themes Only */}
+      {/* Opportunities List with Pagination */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Funding Opportunities</CardTitle>
+          <CardDescription>
+            Showing {startIndex + 1}-{Math.min(endIndex, opportunities.length)} of {opportunities.length} opportunities
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Opportunities Grid */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {currentOpportunities.map((opportunity) => (
+                <OpportunityCard key={opportunity.id} opportunity={opportunity} />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4">
+                <div className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top Funding Themes */}
       <Card>
         <CardHeader>
           <CardTitle>Top Funding Themes</CardTitle>

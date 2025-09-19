@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { X, Filter, Search } from 'lucide-react';
+import type { EnhancedOpportunity } from '@/lib/enhanced-api';
 
 export interface OpportunityFilters {
   country?: string;
@@ -23,6 +24,7 @@ interface OpportunityFiltersProps {
   onFiltersChange: (filters: OpportunityFilters) => void;
   onSearch: () => void;
   onClear: () => void;
+  opportunities?: EnhancedOpportunity[];
 }
 
 const COUNTRIES = [
@@ -98,9 +100,74 @@ export function OpportunityFiltersComponent({
   filters, 
   onFiltersChange, 
   onSearch, 
-  onClear 
+  onClear,
+  opportunities = []
 }: OpportunityFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Generate dynamic filter options from actual data
+  const dynamicFilters = useMemo(() => {
+    if (!opportunities.length) {
+      return {
+        countries: COUNTRIES,
+        thematicPriorities: THEMATIC_PRIORITIES,
+        fundingCycles: FUNDING_CYCLES,
+        subregions: SUBREGIONS,
+        fundingTypes: FUNDING_TYPES
+      };
+    }
+
+    // Extract unique values from opportunities
+    const countries = ['All Countries', ...Array.from(new Set(
+      opportunities.map(opp => opp.country).filter(Boolean)
+    ))].sort();
+
+    const thematicPriorities = ['All Priorities', ...Array.from(new Set(
+      opportunities.flatMap(opp => {
+        if (opp.ai_themes && Array.isArray(opp.ai_themes)) {
+          return opp.ai_themes;
+        }
+        if (opp.thematicPrio) {
+          return opp.thematicPrio.split(',').map(t => t.trim());
+        }
+        return [];
+      }).filter(Boolean)
+    ))].sort();
+
+    const subregions = ['All Subregions', ...Array.from(new Set(
+      opportunities.map(opp => opp.subRegion).filter(Boolean)
+    ))].sort();
+
+    const fundingTypes = ['All Types', ...Array.from(new Set(
+      opportunities.map(opp => opp.fundingType).filter(Boolean)
+    ))].sort();
+
+    // Generate funding cycles based on deadlines
+    const currentYear = new Date().getFullYear();
+    const fundingCycles = ['All Cycles', ...Array.from(new Set(
+      opportunities.map(opp => {
+        if (opp.deadline) {
+          try {
+            const deadlineYear = new Date(opp.deadline).getFullYear();
+            if (deadlineYear >= currentYear && deadlineYear <= currentYear + 3) {
+              return `${deadlineYear}-${deadlineYear + 3}`;
+            }
+          } catch (e) {
+            // Ignore invalid dates
+          }
+        }
+        return null;
+      }).filter(Boolean)
+    ))].sort();
+
+    return {
+      countries,
+      thematicPriorities,
+      fundingCycles,
+      subregions,
+      fundingTypes
+    };
+  }, [opportunities]);
 
   const handleFilterChange = (key: keyof OpportunityFilters, value: string) => {
     const newFilters = { ...filters };
@@ -181,7 +248,7 @@ export function OpportunityFiltersComponent({
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
               <SelectContent>
-                {COUNTRIES.map((country) => (
+                {dynamicFilters.countries.map((country) => (
                   <SelectItem key={country} value={country}>
                     {country}
                   </SelectItem>
@@ -200,7 +267,7 @@ export function OpportunityFiltersComponent({
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                {FUNDING_TYPES.map((type) => (
+                {dynamicFilters.fundingTypes.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
                   </SelectItem>
@@ -219,7 +286,7 @@ export function OpportunityFiltersComponent({
                 <SelectValue placeholder="Select subregion" />
               </SelectTrigger>
               <SelectContent>
-                {SUBREGIONS.map((subregion) => (
+                {dynamicFilters.subregions.map((subregion) => (
                   <SelectItem key={subregion} value={subregion}>
                     {subregion}
                   </SelectItem>
@@ -238,7 +305,7 @@ export function OpportunityFiltersComponent({
                 <SelectValue placeholder="Select cycle" />
               </SelectTrigger>
               <SelectContent>
-                {FUNDING_CYCLES.map((cycle) => (
+                {dynamicFilters.fundingCycles.map((cycle) => (
                   <SelectItem key={cycle} value={cycle}>
                     {cycle}
                   </SelectItem>
@@ -263,7 +330,7 @@ export function OpportunityFiltersComponent({
                   <SelectValue placeholder="Select thematic priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  {THEMATIC_PRIORITIES.map((priority) => (
+                  {dynamicFilters.thematicPriorities.map((priority) => (
                     <SelectItem key={priority} value={priority}>
                       {priority}
                     </SelectItem>

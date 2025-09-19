@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Download, Calendar, Euro, MapPin, Building, User, Mail, Globe } from 'lucide-react';
 import { AiMatcher } from '@/components/opportunities/ai-matcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { getOpportunityById } from '@/lib/api';
+import type { Opportunity } from '@/lib/data';
 
 // Mock opportunity data for demonstration
 const mockOpportunities = [
@@ -136,13 +138,27 @@ const mockOpportunities = [
 ];
 
 export async function generateStaticParams() {
-  return mockOpportunities.map((opportunity) => ({
-    id: opportunity.id,
-  }));
+  // For static generation, we'll use a few known opportunity IDs
+  // In a real app, you might want to fetch all IDs from the API
+  return [
+    { id: 'gates-global-health-2025' },
+    { id: 'gates-education-africa-2025' },
+    { id: 'gates-agriculture-ssa-2025' },
+    { id: 'gates-gender-equality-2025' },
+  ];
 }
 
 export default async function OpportunityDetailPage({ params }: { params: { id: string } }) {
-  const opportunity = mockOpportunities.find(op => op.id === params.id);
+  let opportunity: Opportunity | undefined;
+  
+  try {
+    // Try to fetch from API first
+    opportunity = await getOpportunityById(params.id);
+  } catch (error) {
+    console.error('Error fetching opportunity:', error);
+    // Fallback to mock data if API fails
+    opportunity = mockOpportunities.find(op => op.id === params.id);
+  }
 
   if (!opportunity) {
     notFound();
@@ -173,7 +189,7 @@ export default async function OpportunityDetailPage({ params }: { params: { id: 
                 </div>
                 <div className="flex items-center gap-2 pt-2 text-muted-foreground">
                   <MapPin className="h-4 w-4" />
-                  <span>{opportunity.country} / {opportunity.subRegion}</span>
+                  <span>{opportunity.country} / {opportunity.subRegion || 'Africa'}</span>
                 </div>
               </CardHeader>
               <CardContent>
@@ -186,19 +202,19 @@ export default async function OpportunityDetailPage({ params }: { params: { id: 
                   <div className="mt-4 rounded-md border p-4">
                     <TabsContent value="overview">
                       <h3 className="font-semibold">Summary</h3>
-                      <p className="text-sm text-muted-foreground">{opportunity.summary}</p>
-                       <h3 className="mt-4 font-semibold">MIP Priority Areas</h3>
+                      <p className="text-sm text-muted-foreground">{opportunity.summary || opportunity.description || 'No summary available'}</p>
+                      <h3 className="mt-4 font-semibold">MIP Priority Areas</h3>
                       <ul className="mt-2 list-disc pl-5 text-sm text-muted-foreground">
                         {opportunity.mipPrios?.map(p => <li key={p}>{p}</li>) || <li>Development priorities</li>}
                       </ul>
                     </TabsContent>
                     <TabsContent value="eligibility">
                       <h3 className="font-semibold">Requirements</h3>
-                      <p className="text-sm text-muted-foreground">{opportunity.eligibility}</p>
+                      <p className="text-sm text-muted-foreground">{opportunity.eligibility || 'Please check the source website for eligibility requirements'}</p>
                     </TabsContent>
                     <TabsContent value="application">
-                     <h3 className="font-semibold">Process</h3>
-                      <p className="text-sm text-muted-foreground">{opportunity.applicationProcess}</p>
+                      <h3 className="font-semibold">Process</h3>
+                      <p className="text-sm text-muted-foreground">{opportunity.applicationProcess || 'Please visit the source website for application details'}</p>
                     </TabsContent>
                   </div>
                 </Tabs>
@@ -227,7 +243,7 @@ export default async function OpportunityDetailPage({ params }: { params: { id: 
               <CardContent className="space-y-4 text-sm">
                 <div className="flex items-center gap-2"><Euro className="h-4 w-4 text-muted-foreground"/><strong>Amount:</strong> {opportunity.fundingAmount}</div>
                 <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground"/><strong>Deadline:</strong> {opportunity.deadline}</div>
-                <div className="flex items-center gap-2"><Building className="h-4 w-4 text-muted-foreground"/><strong>Instrument:</strong> {opportunity.fundingInstrument}</div>
+                <div className="flex items-center gap-2"><Building className="h-4 w-4 text-muted-foreground"/><strong>Instrument:</strong> {opportunity.fundingInstrument || opportunity.programme || 'Development Grant'}</div>
               </CardContent>
             </Card>
             <Card>
@@ -237,7 +253,7 @@ export default async function OpportunityDetailPage({ params }: { params: { id: 
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm">Official Source</h4>
                   <a 
-                    href={opportunity.source_url} 
+                    href={opportunity.source_url || '#'} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="block"

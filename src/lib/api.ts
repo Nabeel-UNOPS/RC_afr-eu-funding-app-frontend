@@ -1,7 +1,7 @@
 import { opportunities as mockOpportunities, type Opportunity } from './data';
 
 // Configuration for the backend API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://us-central1-unops-cameron.cloudfunctions.net/api-function';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://us-central1-unops-cameron.cloudfunctions.net/run_intelligent_ingestion';
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 
 /**
@@ -95,10 +95,11 @@ export async function getOpportunities(): Promise<Opportunity[]> {
 
   try {
     const response = await fetch(API_BASE_URL, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ action: 'get_opportunities' }),
     });
 
     if (!response.ok) {
@@ -107,10 +108,15 @@ export async function getOpportunities(): Promise<Opportunity[]> {
 
     const data = await response.json();
     
-    // Handle both array and single object responses
-    const opportunities = Array.isArray(data) ? data : [data];
-    
-    return opportunities.map(mapBackendDataToOpportunity);
+    // Handle the new backend response format
+    if (data.status === 'success' && data.opportunities) {
+      return data.opportunities.map(mapBackendDataToOpportunity);
+    } else if (Array.isArray(data)) {
+      return data.map(mapBackendDataToOpportunity);
+    } else {
+      // Fallback for single object responses
+      return [mapBackendDataToOpportunity(data)];
+    }
   } catch (error) {
     console.error('Error fetching opportunities from backend:', error);
     console.log('Falling back to mock data...');

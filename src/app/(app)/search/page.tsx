@@ -50,59 +50,17 @@ export default function SearchPage() {
     setIsLoading(true);
     setError(null);
     try {
-      console.log("Loading opportunities from API...");
+      console.log("Loading opportunities from enhanced API...");
       
-      // Try multiple API endpoints for better reliability
-      const apiEndpoints = [
-        'https://us-central1-unops-cameron.cloudfunctions.net/api-function/opportunities',
-        'https://us-central1-unops-cameron.cloudfunctions.net/run_intelligent_ingestion?endpoint=opportunities'
-      ];
+      // Use the enhanced API function with proper error handling
+      const opportunities = await getOpportunities();
+      console.log("Loaded opportunities:", opportunities.length);
       
-      let lastError = null;
-      
-      for (const endpoint of apiEndpoints) {
-        try {
-          console.log(`Trying endpoint: ${endpoint}`);
-          const response = await fetch(endpoint, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-            },
-            mode: 'cors',
-          });
-          
-          console.log("Response status:", response.status);
-          
-          if (response.ok) {
-            const data = await response.json();
-            console.log("API Response:", data);
-            
-            // Handle different response formats
-            let opportunities = [];
-            if (data.opportunities && Array.isArray(data.opportunities)) {
-              opportunities = data.opportunities;
-            } else if (data.status === 'success' && data.opportunities && Array.isArray(data.opportunities)) {
-              opportunities = data.opportunities;
-            } else if (Array.isArray(data)) {
-              opportunities = data;
-            }
-            
-            if (opportunities.length > 0) {
-              console.log("Setting opportunities:", opportunities.length);
-              setAllOpportunities(opportunities);
-              return; // Success, exit the function
-            }
-          }
-        } catch (endpointError) {
-          console.error(`Endpoint ${endpoint} failed:`, endpointError);
-          lastError = endpointError;
-          continue; // Try next endpoint
-        }
+      if (opportunities && opportunities.length > 0) {
+        setAllOpportunities(opportunities);
+      } else {
+        setError("No opportunities found. Please try again later.");
       }
-      
-      // If all endpoints failed
-      throw lastError || new Error('All API endpoints failed');
       
     } catch (error) {
       console.error("Failed to load opportunities:", error);
@@ -210,6 +168,7 @@ export default function SearchPage() {
             onFiltersChange={setFilters}
             onSearch={handleSearch}
             onClear={handleClear}
+            opportunities={allOpportunities}
           />
 
           {/* Results */}

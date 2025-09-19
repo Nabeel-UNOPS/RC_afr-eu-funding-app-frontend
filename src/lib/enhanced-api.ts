@@ -159,9 +159,19 @@ class EnhancedFundingAPI {
       const data = await response.json();
       console.log('✅ Enhanced backend response:', data);
 
+      // Handle different response formats
+      let opportunities = [];
       if (data.status === 'success' && data.opportunities) {
+        opportunities = data.opportunities;
+      } else if (data.status === 'success' && data.count && data.opportunities) {
+        opportunities = data.opportunities;
+      } else if (Array.isArray(data)) {
+        opportunities = data;
+      }
+
+      if (opportunities.length > 0) {
         // Check if backend is returning generic EU policy pages instead of real opportunities
-        const hasGenericContent = data.opportunities.some((opp: any) => 
+        const hasGenericContent = opportunities.some((opp: any) => 
           opp.title?.includes('Financing decisions') || 
           opp.title?.includes('Global Europe - Programming') ||
           opp.title?.includes('Global Gateway') ||
@@ -175,17 +185,17 @@ class EnhancedFundingAPI {
           return this.getRealisticEUOpportunities();
         }
 
-        const opportunities = data.opportunities.map((opp: any) => ({
+        const mappedOpportunities = opportunities.map((opp: any) => ({
           id: opp.id || `enhanced-${this.hashString(opp.source_url || opp.title || 'unknown')}`,
           title: opp.title || 'Enhanced Opportunity',
-          country: Array.isArray(opp.countries) ? opp.countries.join(', ') : (opp.countries || 'Multiple African Countries'),
-          subRegion: 'Africa',
-          fundingAmount: opp.amount || 'Contact for details',
-          status: 'Open' as const,
-          deadline: this.formatDate(opp.deadline) || 'No deadline specified',
-          fundingInstrument: opp.programme || opp.type || 'Development Grant',
-          fundingType: 'Development' as const,
-          thematicPrio: Array.isArray(opp.countries) ? opp.countries.slice(0,3).join(', ') : 'Development, Innovation',
+          country: opp.country || 'Multiple African Countries',
+          subRegion: opp.subRegion || 'Africa',
+          fundingAmount: opp.fundingAmount || 'Contact for details',
+          status: opp.status || 'Open',
+          deadline: opp.deadline || 'No deadline specified',
+          fundingInstrument: opp.fundingInstrument || 'Development Grant',
+          fundingType: opp.fundingType || 'Development',
+          thematicPrio: opp.thematicPrio || 'Development, Innovation',
           summary: opp.description || 'AI-enhanced opportunity from EU and Gates Foundation sources',
           eligibility: 'Organizations working in Africa',
           description: opp.description || 'AI-enhanced opportunity from EU and Gates Foundation sources',
@@ -213,8 +223,8 @@ class EnhancedFundingAPI {
           opportunity_score: opp.opportunity_score || 0
         }));
 
-        console.log(`🎯 Returning ${opportunities.length} enhanced opportunities`);
-        return opportunities;
+        console.log(`🎯 Returning ${mappedOpportunities.length} enhanced opportunities`);
+        return mappedOpportunities;
       }
       
       throw new Error('No opportunities found in enhanced response');
