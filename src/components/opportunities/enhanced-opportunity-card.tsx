@@ -279,12 +279,14 @@ export function EnhancedOpportunityCard({
             <Button
               variant="default"
               size="sm"
-              asChild
               className="h-8"
+              onClick={() => {
+                // Open opportunity details in a new tab with URL parameters
+                const url = `/dashboard?opportunity=${encodeURIComponent(opportunity.id)}`;
+                window.open(url, '_blank');
+              }}
             >
-              <Link href={`/opportunities/${opportunity.id}`}>
-                View Details
-              </Link>
+              View Details
             </Button>
           </div>
         </div>

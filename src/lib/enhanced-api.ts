@@ -140,14 +140,20 @@ class EnhancedFundingAPI {
       const enhancedUrl = `${CONFIG.INTELLIGENT_API_BASE}/run_intelligent_ingestion?${qs}`;
       console.log('Enhanced API URL:', enhancedUrl);
       
+      // Add timeout and retry logic
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
       const response = await fetch(enhancedUrl, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
       console.log('📡 Response status:', response.status, response.statusText);
 
       if (!response.ok) {
@@ -231,17 +237,28 @@ class EnhancedFundingAPI {
     } catch (error) {
       console.error('❌ Enhanced backend error:', error);
       
+      // If it's a timeout or network error, try fallback immediately
+      if (error.name === 'AbortError' || error.message.includes('fetch')) {
+        console.log('🔄 Network error, using fallback data');
+        return this.getRealisticEUOpportunities();
+      }
+      
       // Get base data from legacy API
-      const legacyData = await this.getLegacyOpportunities();
-      
-      // Apply client-side AI enhancement
-      const enhancedData = await this.applyClientSideAIEnhancement(legacyData);
-      
-      // Add Gates Foundation data
-      const gatesData = await this.getGatesFoundationData();
-      
-      // Combine and return enhanced opportunities
-      return [...enhancedData, ...gatesData];
+      try {
+        const legacyData = await this.getLegacyOpportunities();
+        
+        // Apply client-side AI enhancement
+        const enhancedData = await this.applyClientSideAIEnhancement(legacyData);
+        
+        // Add Gates Foundation data
+        const gatesData = await this.getGatesFoundationData();
+        
+        // Combine and return enhanced opportunities
+        return [...enhancedData, ...gatesData];
+      } catch (legacyError) {
+        console.error('❌ Legacy API also failed, using realistic data');
+        return this.getRealisticEUOpportunities();
+      }
     }
   }
 

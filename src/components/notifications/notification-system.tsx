@@ -8,7 +8,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Bell, BellOff, Settings, AlertCircle, CheckCircle, Clock, Globe } from 'lucide-react';
+import { Bell, BellOff, Settings, AlertCircle, CheckCircle, Clock, Globe, HelpCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { FundingOpportunity, SearchFilters } from '@/lib/filters';
 
 interface NotificationSettings {
@@ -286,6 +287,21 @@ export function NotificationSystem({ opportunities, onNotificationClick }: Notif
         {/* Settings Panel */}
         {showSettings && (
           <CardContent className="space-y-4">
+            {/* Priority Level Explanation */}
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-start gap-2">
+                <HelpCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="space-y-2 text-sm">
+                  <h4 className="font-semibold text-blue-900">Priority Level Guide</h4>
+                  <div className="space-y-1 text-blue-800">
+                    <div><strong>High:</strong> High funding amount, urgent deadline, or perfect match for your profile</div>
+                    <div><strong>Medium:</strong> Good match, moderate funding, or reasonable timeline</div>
+                    <div><strong>Low:</strong> Basic match, lower funding, or longer timeline</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
@@ -382,12 +398,37 @@ export function NotificationSystem({ opportunities, onNotificationClick }: Notif
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium text-sm">{notification.title}</h4>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${getPriorityColor(notification.priority)}`}
-                        >
-                          {notification.priority}
-                        </Badge>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className={`text-xs cursor-help ${getPriorityColor(notification.priority)}`}
+                              >
+                                {notification.priority}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <div className="space-y-1 text-sm">
+                                {notification.priority === 'high' && (
+                                  <div>
+                                    <strong>High Priority:</strong> High funding amount, urgent deadline, or perfect match for your profile
+                                  </div>
+                                )}
+                                {notification.priority === 'medium' && (
+                                  <div>
+                                    <strong>Medium Priority:</strong> Good match, moderate funding, or reasonable timeline
+                                  </div>
+                                )}
+                                {notification.priority === 'low' && (
+                                  <div>
+                                    <strong>Low Priority:</strong> Basic match, lower funding, or longer timeline
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         {!notification.read && (
                           <div className="w-2 h-2 bg-blue-600 rounded-full" />
                         )}

@@ -8,11 +8,25 @@ import { AIEnhancedDashboard } from '@/components/dashboard/ai-enhanced-dashboar
 import { userProfile } from '@/lib/data';
 import { BarChart3, RefreshCw } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from 'react';
 
 export default function DashboardPage() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  useEffect(() => {
+    // Simulate data loading to prevent layout shift
+    const timer = setTimeout(() => {
+      setDataLoaded(true);
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <div className="flex flex-1 flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background min-h-screen">
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-8">
         <div className="flex items-center gap-2">
            <SidebarTrigger className="md:hidden"/>
@@ -53,15 +67,37 @@ export default function DashboardPage() {
       </header>
 
       <main className="flex-1 space-y-8 p-4 md:p-8">
-        {/* Unified Dashboard Content */}
-        <div className="space-y-6">
-          {/* Traditional Dashboard Data */}
-          <DashboardData />
-          
-          {/* AI-Enhanced Dashboard */}
-          <AIEnhancedDashboard />
-        </div>
-
+        {isLoading ? (
+          <div className="space-y-6">
+            {/* Loading skeleton to prevent layout shift */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardHeader className="h-20 bg-muted"></CardHeader>
+                  <CardContent className="h-16 bg-muted/50"></CardContent>
+                </Card>
+              ))}
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="animate-pulse">
+                <CardHeader className="h-32 bg-muted"></CardHeader>
+                <CardContent className="h-48 bg-muted/50"></CardContent>
+              </Card>
+              <Card className="animate-pulse">
+                <CardHeader className="h-32 bg-muted"></CardHeader>
+                <CardContent className="h-48 bg-muted/50"></CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Traditional Dashboard Data */}
+            <DashboardData />
+            
+            {/* AI-Enhanced Dashboard */}
+            <AIEnhancedDashboard />
+          </div>
+        )}
       </main>
     </div>
   );

@@ -16,8 +16,14 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
   }[opportunity.status] as 'default' | 'destructive' | 'secondary';
 
   return (
-    <Link href={`/opportunities/${opportunity.id}`} className="block">
-      <Card className="transition-all hover:shadow-md hover:border-primary/50">
+    <Card 
+      className="transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
+      onClick={() => {
+        // Open opportunity details in a new tab with URL parameters
+        const url = `/dashboard?opportunity=${encodeURIComponent(opportunity.id)}`;
+        window.open(url, '_blank');
+      }}
+    >
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <CardTitle className="font-headline text-lg">{opportunity.title}</CardTitle>
@@ -50,6 +56,5 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
           </div>
         </CardFooter>
       </Card>
-    </Link>
   );
 }

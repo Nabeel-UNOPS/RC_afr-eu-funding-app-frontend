@@ -121,52 +121,6 @@ export function AIEnhancedDashboard() {
         </Alert>
       )}
 
-      {/* Opportunities List with Pagination */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Funding Opportunities</CardTitle>
-          <CardDescription>
-            Showing {startIndex + 1}-{Math.min(endIndex, opportunities.length)} of {opportunities.length} opportunities
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Opportunities Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {currentOpportunities.map((opportunity) => (
-                <OpportunityCard key={opportunity.id} opportunity={opportunity} />
-              ))}
-            </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between pt-4">
-                <div className="text-sm text-muted-foreground">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Top Funding Themes */}
       <Card>
