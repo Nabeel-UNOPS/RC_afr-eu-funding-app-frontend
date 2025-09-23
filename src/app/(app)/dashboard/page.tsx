@@ -20,7 +20,7 @@ export default function DashboardPage() {
     const timer = setTimeout(() => {
       setDataLoaded(true);
       setIsLoading(false);
-    }, 1000);
+    }, 300); // Reduced from 1000ms to 300ms for faster loading
 
     return () => clearTimeout(timer);
   }, []);
@@ -61,33 +61,31 @@ export default function DashboardPage() {
           
           {/* Last updated timestamp */}
           <div className="text-xs text-muted-foreground">
-            Last updated: {new Date().toLocaleTimeString()}
+            Last updated: {new Date().toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} EST
           </div>
         </div>
       </header>
 
-      <main className="flex-1 space-y-8 p-4 md:p-8">
+      <main className="flex-1 space-y-8 p-4 md:p-8 min-h-[calc(100vh-4rem)]">
         {isLoading ? (
           <div className="space-y-6">
             {/* Loading skeleton to prevent layout shift */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
+            <div className="grid gap-4 md:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
                 <Card key={i} className="animate-pulse">
                   <CardHeader className="h-20 bg-muted"></CardHeader>
                   <CardContent className="h-16 bg-muted/50"></CardContent>
                 </Card>
               ))}
             </div>
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card className="animate-pulse">
-                <CardHeader className="h-32 bg-muted"></CardHeader>
-                <CardContent className="h-48 bg-muted/50"></CardContent>
-              </Card>
-              <Card className="animate-pulse">
-                <CardHeader className="h-32 bg-muted"></CardHeader>
-                <CardContent className="h-48 bg-muted/50"></CardContent>
-              </Card>
-            </div>
+            <Card className="animate-pulse">
+              <CardHeader className="h-16 bg-muted"></CardHeader>
+              <CardContent className="h-32 bg-muted/50"></CardContent>
+            </Card>
+            <Card className="animate-pulse">
+              <CardHeader className="h-16 bg-muted"></CardHeader>
+              <CardContent className="h-64 bg-muted/50"></CardContent>
+            </Card>
           </div>
         ) : (
           <div className="space-y-6">

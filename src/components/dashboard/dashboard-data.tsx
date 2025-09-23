@@ -115,8 +115,17 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
     
     // Status filter
     if (filters.status !== 'all') {
-      const statusMatch = opportunity.status?.toLowerCase() === filters.status.toLowerCase();
-      if (!statusMatch) return false;
+      const opportunityStatus = opportunity.status?.toLowerCase();
+      const filterStatus = filters.status.toLowerCase();
+      
+      // Handle both "upcoming" and "forthcoming" as the same status
+      if (filterStatus === 'upcoming') {
+        const statusMatch = opportunityStatus === 'upcoming' || opportunityStatus === 'forthcoming';
+        if (!statusMatch) return false;
+      } else {
+        const statusMatch = opportunityStatus === filterStatus;
+        if (!statusMatch) return false;
+      }
     }
     
     return true;
@@ -130,8 +139,8 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
   const endIndex = startIndex + opportunitiesPerPage;
   const currentOpportunities = filteredOpportunities.slice(startIndex, endIndex);
 
-  const openOpportunities = filteredOpportunities.filter(op => op.status === 'Open');
-  const upcomingOpportunities = filteredOpportunities.filter(op => op.status === 'Upcoming');
+  const openOpportunities = opportunities.filter(op => op.status === 'Open');
+  const upcomingOpportunities = opportunities.filter(op => op.status === 'Upcoming' || op.status === 'Forthcoming');
 
   // Get unique values for filter options with better data extraction
   const countries = [...new Set([
@@ -194,7 +203,7 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
           className="border-blue-200 bg-blue-50"
         />
         <StatsCard 
-          title="Total in Database" 
+          title="All Opportunities" 
           value={opportunities.length.toLocaleString()} 
           description="All opportunities • Including closed ones"
           icon={Activity}
