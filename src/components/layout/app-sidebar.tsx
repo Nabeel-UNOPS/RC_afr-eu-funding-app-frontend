@@ -11,14 +11,12 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Logo } from "@/components/icons";
-import { Home, Search, Bell, LifeBuoy, LogOut } from "lucide-react";
+import { Home, Bell, LifeBuoy, LogOut } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 const menuItems = [
-  { href: "/dashboard", label: "Dashboard", icon: Home },
-  { href: "/search", label: "Search", icon: Search },
+  { href: "/dashboard", label: "Home", icon: Home },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/support", label: "Support", icon: LifeBuoy },
 ];
@@ -54,16 +52,6 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="flex flex-col gap-3">
         <Separator />
-        <div className="flex items-center gap-3 px-2">
-            <Avatar>
-                <AvatarImage src="https://placehold.co/40x40.png" alt="User Avatar" />
-                <AvatarFallback>NS</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col text-sm">
-                <span className="font-semibold text-sidebar-foreground">Nabeel Siddiqui</span>
-                <span className="text-muted-foreground">IM & Analytics Officer | Peace and Security Cluster | Global Portfolios Office | New York, USA</span>
-            </div>
-        </div>
          <SidebarMenuButton asChild>
             <Link href="/">
                 <LogOut />

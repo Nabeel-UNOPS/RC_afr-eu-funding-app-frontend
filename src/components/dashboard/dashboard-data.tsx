@@ -7,11 +7,12 @@ import { ApiErrorBoundary } from '@/components/ui/api-error-boundary';
 import { getOpportunities } from '@/lib/enhanced-api';
 import type { Opportunity } from '@/lib/data';
 import type { EnhancedOpportunity } from '@/lib/enhanced-api';
-import { Activity, Bookmark, Filter, X } from 'lucide-react';
+import { Activity, Bookmark, Filter, X, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 interface DashboardDataProps {
   fallbackOpportunities?: EnhancedOpportunity[];
@@ -20,10 +21,11 @@ interface DashboardDataProps {
 interface FilterState {
   country: string;
   thematicPriority: string;
-  fundingCycle: string;
+  donor: string;
   subregion: string;
   fundingType: string;
   status: string;
+  search: string;
 }
 
 export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps) {
@@ -33,10 +35,11 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
   const [filters, setFilters] = useState<FilterState>({
     country: 'all',
     thematicPriority: 'all',
-    fundingCycle: 'all',
+    donor: 'all',
     subregion: 'all',
     fundingType: 'all',
-    status: 'all'
+    status: 'all',
+    search: ''
   });
   const [showFilters, setShowFilters] = useState(true);
 
@@ -79,6 +82,18 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
 
   // Filter opportunities based on current filters
   const filteredOpportunities = opportunities.filter(opportunity => {
+    // Search filter - check title, description, themes
+    if (filters.search && filters.search.trim() !== '') {
+      const searchTerm = filters.search.toLowerCase();
+      const searchMatch = 
+        opportunity.title?.toLowerCase().includes(searchTerm) ||
+        opportunity.summary?.toLowerCase().includes(searchTerm) ||
+        opportunity.thematicPrio?.toLowerCase().includes(searchTerm) ||
+        opportunity.country?.toLowerCase().includes(searchTerm) ||
+        opportunity.fundingInstrument?.toLowerCase().includes(searchTerm);
+      if (!searchMatch) return false;
+    }
+    
     // Country filter - check both country and subRegion
     if (filters.country !== 'all') {
       const countryMatch = opportunity.country?.toLowerCase().includes(filters.country.toLowerCase()) ||
@@ -93,11 +108,11 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
       if (!themeMatch) return false;
     }
     
-    // Funding cycle filter - check programme field
-    if (filters.fundingCycle !== 'all') {
-      const programmeMatch = opportunity.programme?.toLowerCase().includes(filters.fundingCycle.toLowerCase()) ||
-                            opportunity.fundingInstrument?.toLowerCase().includes(filters.fundingCycle.toLowerCase());
-      if (!programmeMatch) return false;
+    // Donor filter - check fundingInstrument field
+    if (filters.donor !== 'all') {
+      const donorMatch = opportunity.fundingInstrument?.toLowerCase().includes(filters.donor.toLowerCase()) ||
+                        opportunity.programme?.toLowerCase().includes(filters.donor.toLowerCase());
+      if (!donorMatch) return false;
     }
     
     // Subregion filter
@@ -153,9 +168,9 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
     ...opportunities.map(op => op.thematic_priority).filter(Boolean)
   ])].sort();
   
-  const programmes = [...new Set([
-    ...opportunities.map(op => op.programme).filter(Boolean),
-    ...opportunities.map(op => op.fundingInstrument).filter(Boolean)
+  const donors = [...new Set([
+    ...opportunities.map(op => op.fundingInstrument).filter(Boolean),
+    ...opportunities.map(op => op.programme).filter(Boolean)
   ])].sort();
   
   const subregions = [...new Set(opportunities.map(op => op.subRegion).filter(Boolean))].sort();
@@ -169,10 +184,11 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
     setFilters({
       country: 'all',
       thematicPriority: 'all',
-      fundingCycle: 'all',
+      donor: 'all',
       subregion: 'all',
       fundingType: 'all',
-      status: 'all'
+      status: 'all',
+      search: ''
     });
     setCurrentPage(1); // Reset to first page when clearing filters
   };
@@ -214,6 +230,31 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
       {/* Filters Section */}
       <Card>
         <CardContent className="pt-6">
+          {/* Search Bar */}
+          <div className="mb-6">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search opportunities by title, description, theme, country..."
+                  value={filters.search}
+                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                  className="pl-10"
+                />
+              </div>
+              {filters.search && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFilters(prev => ({ ...prev, search: '' }))}
+                  className="px-3"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center justify-end mb-4">
             {activeFiltersCount > 0 && (
               <Button
@@ -228,7 +269,7 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
             )}
           </div>
           
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
               {/* Status Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Status</label>
@@ -286,39 +327,20 @@ export function DashboardData({ fallbackOpportunities = [] }: DashboardDataProps
                 </Select>
               </div>
 
-              {/* Funding Cycle Filter */}
+              {/* Donor Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Funding Cycle</label>
+                <label className="text-sm font-medium">Donor</label>
                 <Select
-                  value={filters.fundingCycle}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, fundingCycle: value }))}
+                  value={filters.donor}
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, donor: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All Cycles" />
+                    <SelectValue placeholder="All Donors" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Cycles</SelectItem>
-                    {programmes.map(programme => (
-                      <SelectItem key={programme} value={programme}>{programme}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Subregion Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Subregion</label>
-                <Select
-                  value={filters.subregion}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, subregion: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Subregions" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Subregions</SelectItem>
-                    {subregions.map(subregion => (
-                      <SelectItem key={subregion} value={subregion}>{subregion}</SelectItem>
+                    <SelectItem value="all">All Donors</SelectItem>
+                    {donors.map(donor => (
+                      <SelectItem key={donor} value={donor}>{donor}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

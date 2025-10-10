@@ -6,10 +6,9 @@ export const metadata: Metadata = {
   title: 'AFR EU Funds Navigator',
   description: 'A centralized database for UNOPS AFR personnel on EU funding opportunities in Africa.',
   icons: {
-    icon: [],
-    shortcut: [],
-    apple: [],
-    other: [],
+    icon: '/UN_emblem.png',
+    shortcut: '/UN_emblem.png',
+    apple: '/UN_emblem.png',
   },
 };
 

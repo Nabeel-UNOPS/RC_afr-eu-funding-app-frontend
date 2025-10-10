@@ -13,7 +13,7 @@ import type { EnhancedOpportunity } from '@/lib/enhanced-api';
 export interface OpportunityFilters {
   country?: string;
   thematic_priority?: string;
-  funding_cycle?: string;
+  donor?: string;
   subregion?: string;
   funding_type?: 'Development' | 'Humanitarian' | 'All';
   search?: string;
@@ -68,13 +68,18 @@ const THEMATIC_PRIORITIES = [
   'Youth and gender equality'
 ];
 
-const FUNDING_CYCLES = [
-  'All Cycles',
-  '2021-2024',
-  '2024-2027',
-  '2025-2028',
-  '2026-2029',
-  '2027-2030'
+const DONORS = [
+  'All Donors',
+  'European Commission',
+  'Gates Foundation',
+  'NDICI - Global Europe',
+  'Horizon Europe',
+  'Digital Europe Programme',
+  'Global Gateway',
+  'European Peace Facility',
+  'DG ECHO',
+  'World Bank',
+  'African Development Bank'
 ];
 
 const SUBREGIONS = [
@@ -111,7 +116,7 @@ export function OpportunityFiltersComponent({
       return {
         countries: COUNTRIES,
         thematicPriorities: THEMATIC_PRIORITIES,
-        fundingCycles: FUNDING_CYCLES,
+        donors: DONORS,
         subregions: SUBREGIONS,
         fundingTypes: FUNDING_TYPES
       };
@@ -142,28 +147,15 @@ export function OpportunityFiltersComponent({
       opportunities.map(opp => opp.fundingType).filter(Boolean)
     ))].sort();
 
-    // Generate funding cycles based on deadlines
-    const currentYear = new Date().getFullYear();
-    const fundingCycles = ['All Cycles', ...Array.from(new Set(
-      opportunities.map(opp => {
-        if (opp.deadline) {
-          try {
-            const deadlineYear = new Date(opp.deadline).getFullYear();
-            if (deadlineYear >= currentYear && deadlineYear <= currentYear + 3) {
-              return `${deadlineYear}-${deadlineYear + 3}`;
-            }
-          } catch (e) {
-            // Ignore invalid dates
-          }
-        }
-        return null;
-      }).filter(Boolean)
+    // Generate donors from funding instruments
+    const donors = ['All Donors', ...Array.from(new Set(
+      opportunities.map(opp => opp.fundingInstrument).filter(Boolean)
     ))].sort();
 
     return {
       countries,
       thematicPriorities,
-      fundingCycles,
+      donors,
       subregions,
       fundingTypes
     };
@@ -171,7 +163,7 @@ export function OpportunityFiltersComponent({
 
   const handleFilterChange = (key: keyof OpportunityFilters, value: string) => {
     const newFilters = { ...filters };
-    if (value === 'All Countries' || value === 'All Priorities' || value === 'All Cycles' || value === 'All Subregions' || value === 'All Types') {
+    if (value === 'All Countries' || value === 'All Priorities' || value === 'All Donors' || value === 'All Subregions' || value === 'All Types') {
       delete newFilters[key];
     } else {
       newFilters[key] = value;
@@ -296,18 +288,18 @@ export function OpportunityFiltersComponent({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="funding_cycle">Funding Cycle</Label>
+            <Label htmlFor="donor">Donor</Label>
             <Select
-              value={filters.funding_cycle || 'All Cycles'}
-              onValueChange={(value) => handleFilterChange('funding_cycle', value)}
+              value={filters.donor || 'All Donors'}
+              onValueChange={(value) => handleFilterChange('donor', value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select cycle" />
+                <SelectValue placeholder="Select donor" />
               </SelectTrigger>
               <SelectContent>
-                {dynamicFilters.fundingCycles.map((cycle) => (
-                  <SelectItem key={cycle} value={cycle}>
-                    {cycle}
+                {dynamicFilters.donors.map((donor) => (
+                  <SelectItem key={donor} value={donor}>
+                    {donor}
                   </SelectItem>
                 ))}
               </SelectContent>

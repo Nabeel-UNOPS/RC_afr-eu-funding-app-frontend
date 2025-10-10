@@ -5,8 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DashboardData } from '@/components/dashboard/dashboard-data';
 import { AIEnhancedDashboard } from '@/components/dashboard/ai-enhanced-dashboard';
-import { userProfile } from '@/lib/data';
-import { BarChart3, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState, useEffect } from 'react';
@@ -30,14 +29,11 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-8">
         <div className="flex items-center gap-2">
            <SidebarTrigger className="md:hidden"/>
-           <h1 className="font-headline text-lg font-semibold text-foreground md:text-xl">
-              Welcome, {userProfile.name.split(' ')[0]}!
-            </h1>
         </div>
         
         {/* UNOPS Logo */}
         <div className="flex items-center justify-center flex-1">
-          <div className="flex items-center bg-blue-50 px-4 py-2 rounded-lg">
+          <div className="flex items-center px-4 py-2">
             <img 
               src="/UNOPS_logo.png" 
               alt="UNOPS Logo" 
@@ -47,15 +43,11 @@ export default function DashboardPage() {
         </div>
         
         <div className="flex flex-col items-end gap-2">
-          {/* Refresh and Collect Data buttons */}
+          {/* Refresh Data button */}
           <div className="flex gap-1">
             <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-7 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300" onClick={() => window.location.reload()}>
               <RefreshCw className="h-3 w-3 mr-1" />
-              Refresh
-            </Button>
-            <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-7 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300" onClick={() => window.location.reload()}>
-              <BarChart3 className="h-3 w-3 mr-1" />
-              Collect Data
+              Refresh Data
             </Button>
           </div>
           

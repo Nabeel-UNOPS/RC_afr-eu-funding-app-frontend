@@ -15,9 +15,14 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
     Upcoming: 'secondary',
   }[opportunity.status] as 'default' | 'destructive' | 'secondary';
 
+  const truncateText = (text: string, maxLength: number = 150) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   return (
     <Card 
-      className="transition-all hover:shadow-md hover:border-primary/50 cursor-pointer"
+      className="transition-all hover:shadow-md hover:border-primary/50 cursor-pointer flex flex-col"
       onClick={() => {
         // Open opportunity details in a new tab with URL parameters
         const url = `/dashboard?opportunity=${encodeURIComponent(opportunity.id)}`;
@@ -34,19 +39,27 @@ export function OpportunityCard({ opportunity }: OpportunityCardProps) {
             <span>{opportunity.country}</span>
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <Euro className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-muted-foreground">Amount</p>
-              <p className="font-medium">{opportunity.fundingAmount}</p>
+        <CardContent className="flex-1 space-y-4">
+          {/* Description */}
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {truncateText(opportunity.summary, 150)}
+          </p>
+          
+          {/* Key Details */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <Euro className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-muted-foreground">Amount</p>
+                <p className="font-medium">{opportunity.fundingAmount}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-muted-foreground">Deadline</p>
-              <p className="font-medium">{opportunity.deadline}</p>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-muted-foreground">Deadline</p>
+                <p className="font-medium">{opportunity.deadline}</p>
+              </div>
             </div>
           </div>
         </CardContent>

@@ -131,18 +131,18 @@ export function AIEnhancedDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             {aiStats?.top_themes?.length > 0 ? (
-              aiStats.top_themes.slice(0, 10).map((theme, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                  <span className="font-medium">{theme}</span>
-                  <Badge variant="secondary">
-                    Rank #{index + 1}
+              aiStats.top_themes.slice(0, 5).map((theme, index) => (
+                <div key={index} className="flex flex-col items-center justify-center p-4 border rounded-lg bg-gradient-to-br from-blue-50 to-white hover:shadow-md transition-shadow">
+                  <Badge variant="secondary" className="mb-2">
+                    #{index + 1}
                   </Badge>
+                  <span className="font-medium text-center text-sm">{theme}</span>
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground">No theme data available</p>
+              <p className="text-muted-foreground col-span-full text-center">No theme data available</p>
             )}
           </div>
         </CardContent>
